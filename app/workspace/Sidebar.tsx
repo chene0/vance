@@ -4,35 +4,29 @@
 import { Sidebar } from "flowbite-react";
 import { HiArrowSmRight, HiChartPie, HiInbox, HiShoppingBag, HiTable, HiUser } from "react-icons/hi";
 
-export default function Component() {
+function RecurseFiles(files: any){
+  const res : any[] = []
+  for(const item in files){
+    if(typeof files[item] === 'string'){
+      res.push(<Sidebar.Item href="#">{files[item]}</Sidebar.Item>)
+    }else{
+      res.push(<Sidebar.Collapse icon={HiShoppingBag} label={item}>
+        {RecurseFiles(files[item])}
+      </Sidebar.Collapse>)
+    }
+  }
+  return res
+}
+
+export default function Component( files: any) {
+  console.log(files.files);
+  const render = RecurseFiles(files.files)
+
   return (
     <Sidebar aria-label="Sidebar with multi-level dropdown example">
       <Sidebar.Items>
         <Sidebar.ItemGroup>
-          <Sidebar.Item href="#" icon={HiChartPie}>
-            Dashboard
-          </Sidebar.Item>
-          <Sidebar.Collapse icon={HiShoppingBag} label="E-commerce">
-            <Sidebar.Item href="#">Products</Sidebar.Item>
-            <Sidebar.Item href="#">Sales</Sidebar.Item>
-            <Sidebar.Item href="#">Refunds</Sidebar.Item>
-            <Sidebar.Item href="#">Shipping</Sidebar.Item>
-          </Sidebar.Collapse>
-          <Sidebar.Item href="#" icon={HiInbox}>
-            Inbox
-          </Sidebar.Item>
-          <Sidebar.Item href="#" icon={HiUser}>
-            Users
-          </Sidebar.Item>
-          <Sidebar.Item href="#" icon={HiShoppingBag}>
-            Products
-          </Sidebar.Item>
-          <Sidebar.Item href="#" icon={HiArrowSmRight}>
-            Sign In
-          </Sidebar.Item>
-          <Sidebar.Item href="#" icon={HiTable}>
-            Sign Up
-          </Sidebar.Item>
+          {render}
         </Sidebar.ItemGroup>
       </Sidebar.Items>
     </Sidebar>
