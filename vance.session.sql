@@ -1,3 +1,2 @@
-SELECT (content).files
-FROM users
-WHERE username = 'example'
+DELETE FROM users_table
+WHERE id = 4

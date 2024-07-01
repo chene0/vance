@@ -10,7 +10,7 @@ function RecurseFiles(files: any){
     if(typeof files[item] === 'string'){
       res.push(<Sidebar.Item href="#">{files[item]}</Sidebar.Item>)
     }else{
-      res.push(<Sidebar.Collapse icon={HiShoppingBag} label={item}>
+      res.push(<Sidebar.Collapse label={item}>
         {RecurseFiles(files[item])}
       </Sidebar.Collapse>)
     }
