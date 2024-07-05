@@ -16,6 +16,7 @@
     "flowbite": "^2.4.1",
     "flowbite-react": "^0.10.1",
     "next": "14.2.4",
+    "next-auth": "^5.0.0-beta.19",
     "react": "^18",
     "react-dom": "^18",
     "vercel": "^34.2.8",

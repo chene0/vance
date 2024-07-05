@@ -2,6 +2,7 @@
 
 import { z } from 'zod'
 import { createUser } from '@/src/db/queries';
+import { signIn } from "@/auth"
 const argon2 = require('argon2');
 
 const FormSchema = z.object({
