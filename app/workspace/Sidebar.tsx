@@ -19,8 +19,8 @@ function RecurseFiles(files: any){
 }
 
 export default function Component( files: any) {
-  console.log(files.files);
-  const render = RecurseFiles(files.files)
+  console.log(files);
+  const render = RecurseFiles(files)
 
   return (
     <Sidebar aria-label="Sidebar with multi-level dropdown example">

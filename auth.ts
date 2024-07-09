@@ -4,10 +4,18 @@ import Credentials from 'next-auth/providers/credentials';
 import { ZodError } from 'zod';
 import { signInSchema } from "./app/lib/zod"
 import { getUserByCredentials } from './src/db/queries';
+import { DrizzleAdapter } from "@auth/drizzle-adapter"
+import { db, sessions, users, accounts, verificationTokens } from "./src/db/schema"
 const argon2 = require('argon2');
  
-export const { auth, signIn, signOut } = NextAuth({
+export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
+  adapter: DrizzleAdapter(db, {
+    usersTable: users,
+    accountsTable: accounts,
+    sessionsTable: sessions,
+    verificationTokensTable: verificationTokens,
+  }),
   providers: [
     Credentials({
       // You can specify which fields should be submitted, by adding keys to the `credentials` object.
