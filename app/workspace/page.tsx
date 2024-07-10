@@ -1,18 +1,24 @@
 import Sidebar from './Sidebar'
-import { getUserById, getUserByName } from '@/src/db/queries'
+import { getUserById, } from '@/src/db/queries'
 import { signOut } from '@/auth';
-import { getSession, useSession } from "next-auth/react"
 import { auth } from '@/auth'
 
 export default async function Page(){
     const session = await auth()
     console.log("Session:", session)
-    const files = await session?.user.content
-    console.log(await files)
+    const user = await getUserById(session?.user.id as string)
+    console.log("User:", user)
+    
+    const files = null;
+
+    // if(!session?.user){
+    //     return <div>Not logged in</div>
+    // }
 
     return (
         <div>
             <div>
+                {JSON.stringify(session, null, 2)}
                 <Sidebar files={await files}/>
                 <form
                     action={async () => {

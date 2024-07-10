@@ -14,7 +14,7 @@ export async function getUserById(id: SelectUser['id']): Promise<
     name: string;
     email: string;
     emailVerified: Date | null;
-    pw: string;
+    pw: string | null;
     image: string | null;
     content: any;
     misc: any;
@@ -23,43 +23,43 @@ export async function getUserById(id: SelectUser['id']): Promise<
   return db.select().from(users).where(eq(users.id, id));
 }
 
-export async function getUserByName(name: SelectUser['name']): Promise<
-  Array<{
-    id: string;
-    name: string;
-    email: string;
-    emailVerified: Date | null;
-    pw: string;
-    image: string | null;
-    content: any;
-    misc: any;
-  }>
-> {
-  return db.select().from(users).where(eq(users.name, name));
-}
-export async function getUserByCredentials(
-  email: SelectUser['email'],
-  pw: SelectUser['pw']
-): Promise<
-  Array<{
-    id: string;
-    name: string;
-    email: string;
-    emailVerified: Date | null;
-    pw: string;
-    image: string | null;
-    content: any;
-    misc: any;
-  }>
-> {
-  return db
-    .select()
-    .from(users)
-    .where(and(
-      eq(users.email, email),
-      eq(users.pw, pw)
-    ))
-}
+// export async function getUserByName(name: SelectUser['name']): Promise<
+//   Array<{
+//     id: string;
+//     name: string;
+//     email: string;
+//     emailVerified: Date | null;
+//     pw: string;
+//     image: string | null;
+//     content: any;
+//     misc: any;
+//   }>
+// > {
+//   return db.select().from(users).where(eq(users.name, name));
+// }
+// export async function getUserByCredentials(
+//   email: SelectUser['email'],
+//   pw: SelectUser['pw']
+// ): Promise<
+//   Array<{
+//     id: string;
+//     name: string;
+//     email: string;
+//     emailVerified: Date | null;
+//     pw: string;
+//     image: string | null;
+//     content: any;
+//     misc: any;
+//   }>
+// > {
+//   return db
+//     .select()
+//     .from(users)
+//     .where(and(
+//       eq(users.email, email),
+//       eq(users.pw, pw)
+//     ))
+// }
 
 // UPDATE
 
