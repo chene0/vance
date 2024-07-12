@@ -63,5 +63,8 @@ export async function getUserById(id: SelectUser['id']): Promise<
 
 // UPDATE
 
+export async function updateUserById(id: SelectUser['id'], data: Partial<SelectUser>) {
+  await db.update(users).set(data).where(eq(users.id, id));
+}
 
 // DELETE

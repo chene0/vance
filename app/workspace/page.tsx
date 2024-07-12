@@ -1,5 +1,5 @@
 import Sidebar from './Sidebar'
-import { getUserById, } from '@/src/db/queries'
+import { getUserById, updateUserById, } from '@/src/db/queries'
 import { signOut } from '@/auth';
 import { auth } from '@/auth'
 
@@ -7,9 +7,15 @@ export default async function Page(){
     const session = await auth()
     console.log("Session:", session)
     const user = await getUserById(session?.user.id as string)
+    if(user[0].content === null){
+        updateUserById(user[0].id, {...user[0], content: {
+            "Physics": {"file1": "physics.pdf"},
+            "file1": "spanish.pdf"
+        }})
+    }
     console.log("User:", user)
     
-    const files = null;
+    const files = user[0].content;
 
     // if(!session?.user){
     //     return <div>Not logged in</div>
@@ -18,7 +24,7 @@ export default async function Page(){
     return (
         <div>
             <div>
-                {JSON.stringify(session, null, 2)}
+                {JSON.stringify(user, null, 2)}
                 <Sidebar files={await files}/>
                 <form
                     action={async () => {
