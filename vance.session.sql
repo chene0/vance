@@ -1,1 +1,2 @@
-DROP TABLE "user"
+SELECT "content"
+FROM "user"

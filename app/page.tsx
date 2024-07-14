@@ -8,7 +8,7 @@ export default function Component() {
         <span className="self-center whitespace-nowrap text-xl font-semibold dark:text-white">Vance</span>
       </NavbarBrand>
       <div className="flex md:order-2">
-        <Button href="./signup">Get started</Button>
+        <Button href="./api/auth/signin">Sign in with GitHub</Button>
         <NavbarToggle />
       </div>
       <NavbarCollapse>
