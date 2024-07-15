@@ -9,7 +9,15 @@ function RecurseFiles(files: any) {
   const res: any[] = []
   for (const item in files) {
     if (typeof files[item] === 'string') {
-      res.push(<Sidebar.Item onClick={GetFileFromBucket(files[item])}>{item}</Sidebar.Item>)
+      res.push(
+        <Sidebar.Item>{
+          <form action={() => {
+            GetFileFromBucket(files[item])
+          }}>
+            <button>{item}</button>
+          </form>
+        }</Sidebar.Item>
+      )
     } else {
       res.push(<Sidebar.Collapse label={item}>
         {RecurseFiles(files[item])}

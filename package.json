@@ -11,6 +11,7 @@
   "dependencies": {
     "@auth/drizzle-adapter": "^1.4.1",
     "@aws-sdk/client-s3": "^3.614.0",
+    "@reduxjs/toolkit": "^2.2.6",
     "@vercel/postgres": "^0.9.0",
     "argon2": "^0.40.3",
     "dotenv": "^16.4.5",
@@ -22,6 +23,7 @@
     "postgres": "^3.4.4",
     "react": "^18",
     "react-dom": "^18",
+    "react-redux": "^9.1.2",
     "vercel": "^34.2.8",
     "zod": "^3.23.8"
   },

@@ -18,6 +18,7 @@ export const GetFileFromBucket = async (file: string) => {
         const response = await client.send(command);
         const str = await response.Body?.transformToByteArray();
         console.log(str);
+        return response.Body;
     } catch (err) {
         console.error(err);
     }
