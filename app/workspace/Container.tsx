@@ -3,15 +3,30 @@
 import { redirect } from 'next/navigation'
 import Sidebar from './Sidebar'
 import { signOut } from './workspaceActions'
-import { useState } from 'react'
+// import React from 'react'
 
-export default function Container({ user }: { user: any }) {
+import { useAppSelector, useAppDispatch } from '../../redux/hooks'
+import { setSelectedFile, selectWorkspace } from '../../redux/workspace/workspaceSlice'
+import { Provider } from 'react-redux'
+import { store } from '../../redux/store'
+
+export default function Wrapper({ user }: { user: any }) {
+    return (
+        <Provider store={store}>
+            <Container user={user} />
+        </Provider>
+    )
+}
+
+export function Container({ user }: { user: any }) {
 
     const files = user[0]?.content;
 
+    const selectedFile = useAppSelector(selectWorkspace)
+    const dispatch = useAppDispatch()
+
     return (
         <div>
-            {/* {JSON.stringify(user, null, 2)} */}
             <Sidebar files={files} />
             <form
                 action={signOut}
@@ -20,6 +35,7 @@ export default function Container({ user }: { user: any }) {
                     <div className="hidden md:block">Sign Out</div>
                 </button>
             </form>
+            {selectedFile.selectedFile}
         </div>
     )
 }

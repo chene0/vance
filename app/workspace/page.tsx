@@ -1,7 +1,7 @@
 import Sidebar from './Sidebar'
 import { getUserById, updateUserById, } from '@/src/db/queries'
 import { auth } from '@/auth'
-import Container from './Container';
+import Wrapper from './Container';
 import { signOut } from '@/auth';
 
 export default async function Page() {
@@ -16,7 +16,7 @@ export default async function Page() {
 
     return (
         <div>
-            <Container user={await user} />
+            <Wrapper user={await user} />
         </div>
     )
 }

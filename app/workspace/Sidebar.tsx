@@ -4,15 +4,22 @@
 import { Sidebar } from "flowbite-react";
 import { HiArrowSmRight, HiChartPie, HiInbox, HiShoppingBag, HiTable, HiUser } from "react-icons/hi";
 import { GetFileFromBucket } from "../lib/actions";
+import React from 'react'
+
+import { useAppSelector, useAppDispatch } from '../../redux/hooks'
+import { setSelectedFile, selectWorkspace } from '../../redux/workspace/workspaceSlice'
 
 function RecurseFiles(files: any) {
+  const selectedFile = useAppSelector(selectWorkspace)
+  const dispatch = useAppDispatch()
+
   const res: any[] = []
   for (const item in files) {
     if (typeof files[item] === 'string') {
       res.push(
         <Sidebar.Item>{
           <form action={() => {
-            GetFileFromBucket(files[item])
+            dispatch(setSelectedFile(GetFileFromBucket(files[item])))
           }}>
             <button>{item}</button>
           </form>
