@@ -13,10 +13,11 @@ import { store } from '../store'
 import { Document, Page } from 'react-pdf'
 import { pdfjs } from 'react-pdf';
 
-pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-    'pdfjs-dist/legacy/build/pdf.worker.min.mjs',
-    import.meta.url,
-).toString();
+// pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+//     'pdfjs-dist/legacy/build/pdf.worker.min.mjs',
+//     import.meta.url,
+// ).toString();
+pdfjs.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
 
 const options = {
     cMapUrl: '/cmaps/',
