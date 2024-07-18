@@ -4,11 +4,24 @@ import { redirect } from 'next/navigation'
 import Sidebar from './Sidebar'
 import { signOut } from './workspaceActions'
 // import React from 'react'
+import { use, useEffect, useRef, useState } from 'react'
 
 import { useAppSelector, useAppDispatch } from '../../redux/hooks'
 import { setSelectedFile, selectWorkspace } from '../../redux/workspace/workspaceSlice'
 import { Provider } from 'react-redux'
 import { store } from '../../redux/store'
+import { Document, Page } from 'react-pdf'
+import { pdfjs } from 'react-pdf';
+
+pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+    'pdfjs-dist/legacy/build/pdf.worker.min.mjs',
+    import.meta.url,
+).toString();
+
+const options = {
+    cMapUrl: '/cmaps/',
+    standardFontDataUrl: '/standard_fonts/',
+};
 
 export default function Wrapper({ user }: { user: any }) {
     return (
@@ -20,10 +33,19 @@ export default function Wrapper({ user }: { user: any }) {
 
 export function Container({ user }: { user: any }) {
 
+    pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/legacy/build/pdf.worker.min.mjs`;
+
     const files = user[0]?.content;
 
-    const selectedFile = useAppSelector(selectWorkspace)
+    const selectedFile = useAppSelector(selectWorkspace).entities;
     const dispatch = useAppDispatch()
+
+    const [numPages, setNumPages] = useState<number>();
+    const [pageNumber, setPageNumber] = useState<number>(1);
+
+    function onDocumentLoadSuccess({ numPages }: { numPages: number }): void {
+        setNumPages(numPages);
+    }
 
     return (
         <div>
@@ -35,7 +57,15 @@ export function Container({ user }: { user: any }) {
                     <div className="hidden md:block">Sign Out</div>
                 </button>
             </form>
-            {selectedFile.selectedFile}
+            <div>
+                <Document file={selectedFile[selectedFile.length - 1]} onLoadSuccess={onDocumentLoadSuccess}>
+                    <Page pageNumber={pageNumber} />
+                </Document>
+                <p>
+                    Page {pageNumber} of {numPages}
+                </p>
+            </div>
+            {selectedFile}
         </div>
     )
 }

@@ -4,7 +4,9 @@ import { z } from 'zod'
 import { createUser } from '@/src/db/queries';
 import { signIn } from "@/auth"
 const argon2 = require('argon2');
+const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
+const fs = require('fs');
 
 const client = new S3Client({});
 
@@ -15,10 +17,14 @@ export const GetFileFromBucket = async (file: string) => {
     });
 
     try {
-        const response = await client.send(command);
-        const str = await response.Body?.transformToString();
-        console.log(str);
-        return str;
+        // const response = await client.send(command);
+        // // const str = await response.Body?.transformToString();
+        // const arr = await response.Body?.transformToByteArray();
+        // console.log("🚀 ~ GetFileFromBucket ~ arr:", arr)
+        // return arr;
+        const url = await getSignedUrl(client, command, { expiresIn: 3600 });
+        console.log("🚀 ~ GetFileFromBucket ~ url:", await url)
+        return await url;
     } catch (err) {
         console.error(err);
     }

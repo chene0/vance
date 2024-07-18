@@ -1,13 +1,26 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit'
+import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit'
 import type { RootState } from '../store'
 import { GetObjectCommandOutput } from "@aws-sdk/client-s3";
+import { GetFileFromBucket } from '@/app/lib/actions';
+const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
+
+export const fetchFileByRawURL = createAsyncThunk(
+    'file/fetchByRawURL',
+    async (rawURL: string, thunkAPI) => {
+        // GetFileFromBucket already returns the signed URL
+        const response = await GetFileFromBucket(rawURL);
+        return response;
+    }
+)
 
 export interface WorkspaceState {
-    selectedFile: string
+    entities: string[],
+    loading: 'idle' | 'pending' | 'succeeded' | 'failed',
 }
 
 const initialState: WorkspaceState = {
-    selectedFile: ''
+    entities: [],
+    loading: 'idle',
 }
 
 export const workspaceSlice = createSlice({
@@ -15,8 +28,13 @@ export const workspaceSlice = createSlice({
     initialState,
     reducers: {
         setSelectedFile: (state, action: PayloadAction<any>) => {
-            state.selectedFile = action.payload
+            state.entities.push(action.payload)
         }
+    },
+    extraReducers: (builder) => {
+        builder.addCase(fetchFileByRawURL.fulfilled, (state, action) => {
+            state.entities.push(action.payload);
+        })
     }
 })
 

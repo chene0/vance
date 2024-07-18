@@ -1,6 +1,8 @@
 import { configureStore } from "@reduxjs/toolkit";
 import workspaceReducer  from "./workspace/workspaceSlice";
 
+import { GetFileFromBucket } from "@/app/lib/actions";
+
 export const store = configureStore({
     reducer: {
         workspace: workspaceReducer
