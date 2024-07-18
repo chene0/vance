@@ -6,9 +6,15 @@ import { signIn } from "@/auth"
 const argon2 = require('argon2');
 const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
-const fs = require('fs');
+import { awsCredentialsProvider } from '@vercel/functions/oidc';
 
-const client = new S3Client({});
+const AWS_ROLE_ARN = process.env.AWS_ROLE_ARN!;
+
+const client = new S3Client({
+  credentials: awsCredentialsProvider({
+    roleArn: AWS_ROLE_ARN,
+  }),
+});
 
 export const GetFileFromBucket = async (file: string) => {
     const command = new GetObjectCommand({
