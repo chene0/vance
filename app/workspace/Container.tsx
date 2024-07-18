@@ -6,10 +6,10 @@ import { signOut } from './workspaceActions'
 // import React from 'react'
 import { use, useEffect, useRef, useState } from 'react'
 
-import { useAppSelector, useAppDispatch } from '../../redux/hooks'
-import { setSelectedFile, selectWorkspace } from '../../redux/workspace/workspaceSlice'
+import { useAppSelector, useAppDispatch } from '../hooks'
+import { setSelectedFile, selectWorkspace } from './workspaceSlice'
 import { Provider } from 'react-redux'
-import { store } from '../../redux/store'
+import { store } from '../store'
 import { Document, Page } from 'react-pdf'
 import { pdfjs } from 'react-pdf';
 

@@ -7,8 +7,8 @@ import { GetFileFromBucket } from "../lib/actions";
 import React from 'react'
 import { use } from "react";
 
-import { useAppSelector, useAppDispatch } from '../../redux/hooks'
-import { setSelectedFile, selectWorkspace, fetchFileByRawURL } from '../../redux/workspace/workspaceSlice'
+import { useAppSelector, useAppDispatch } from '../hooks'
+import { setSelectedFile, selectWorkspace, fetchFileByRawURL } from './workspaceSlice'
 
 function RecurseFiles(files: any) {
   const selectedFile = useAppSelector(selectWorkspace)
@@ -36,7 +36,6 @@ function RecurseFiles(files: any) {
 }
 
 export default function Component(files: any) {
-  console.log(files);
   const render = RecurseFiles(files)
 
   return (
