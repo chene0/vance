@@ -1,11 +1,11 @@
 import { configureStore } from "@reduxjs/toolkit";
 import workspaceReducer  from "./workspace/workspaceSlice";
-
-import { GetFileFromBucket } from "@/app/lib/actions";
+import modalSetSliceReducer from "./workspace/modalSetSlice";
 
 export const store = configureStore({
     reducer: {
-        workspace: workspaceReducer
+        workspace: workspaceReducer,
+        modalSet: modalSetSliceReducer
     }
 })
 

@@ -1,14 +1,16 @@
 
 "use client";
 
-import { Sidebar } from "flowbite-react";
+import { Sidebar, Modal, Button } from "flowbite-react";
 import { HiArrowSmRight, HiChartPie, HiInbox, HiShoppingBag, HiTable, HiUser } from "react-icons/hi";
 import { GetFileFromBucket } from "../lib/actions";
-import React from 'react'
+import * as ContextMenu from '@radix-ui/react-context-menu';
+import React, { useState } from 'react'
 import { use } from "react";
 
 import { useAppSelector, useAppDispatch } from '../hooks'
 import { setSelectedFile, selectWorkspace, fetchFileByRawURL } from './workspaceSlice'
+import { getModalSetState, setModalSetState } from "./modalSetSlice";
 
 function RecurseFiles(files: any) {
   const selectedFile = useAppSelector(selectWorkspace)
@@ -27,24 +29,46 @@ function RecurseFiles(files: any) {
         }</Sidebar.Item>
       )
     } else {
-      res.push(<Sidebar.Collapse label={item} key={item}>
-        {RecurseFiles(files[item])}
-      </Sidebar.Collapse>)
+      res.push(
+        <ContextMenu.Root>
+          <ContextMenu.Trigger className="ContextMenuTrigger">
+            <Sidebar.Collapse label={item} key={item}>
+              {RecurseFiles(files[item])}
+            </Sidebar.Collapse>
+          </ContextMenu.Trigger>
+          <ContextMenu.Portal>
+            <ContextMenu.Content className="ContextMenuContent">
+              <a className="block max-w-sm p-6 bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700">
+                <ContextMenu.Item className="ContextMenuItem text-black">
+                  Add Subfolder
+                </ContextMenu.Item>
+                <ContextMenu.Item className="ContextMenuItem text-black">
+                  <Button onClick={() => dispatch(setModalSetState())}>
+                    Create new set
+                  </Button>
+                </ContextMenu.Item>
+              </a>
+            </ContextMenu.Content>
+          </ContextMenu.Portal>
+        </ContextMenu.Root>
+      )
     }
   }
   return res
 }
 
 export default function Component(files: any) {
-  const render = RecurseFiles(files)
+  const render = RecurseFiles(files.files)
 
   return (
-    <Sidebar aria-label="Sidebar with multi-level dropdown example">
-      <Sidebar.Items>
-        <Sidebar.ItemGroup>
-          {render}
-        </Sidebar.ItemGroup>
-      </Sidebar.Items>
-    </Sidebar>
+    <div>
+      <Sidebar aria-label="Sidebar with multi-level dropdown example">
+        <Sidebar.Items>
+          <Sidebar.ItemGroup>
+            {render}
+          </Sidebar.ItemGroup>
+        </Sidebar.Items>
+      </Sidebar>
+    </div>
   );
 }
