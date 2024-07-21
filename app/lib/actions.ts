@@ -1,12 +1,13 @@
 'use server'
 
 import { z } from 'zod'
-import { createUser } from '@/src/db/queries';
+import { createUser, updateUserById } from '@/src/db/queries';
 import { signIn } from "@/auth"
 // const argon2 = require('argon2');
 const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { awsCredentialsProvider } from '@vercel/functions/oidc';
+import { redirect } from 'next/navigation';
 
 const AWS_ROLE_ARN = process.env.AWS_ROLE_ARN!;
 
@@ -30,6 +31,37 @@ export const GetFileFromBucket = async (file: string) => {
     }
 }
 
+export async function AddFolder(parentFolder: string, prospectiveFolder: string, files: any, user: any){
+  const newStructure = RecurseFilesFindTargetFolder(files, parentFolder, prospectiveFolder)
+  console.log(await updateUserById(user.id as string, {
+    content: newStructure
+  }));
+  return newStructure;
+}
+
+function RecurseFilesFindTargetFolder(files: any, targetFolder: string, prospectiveFolder: any){
+  let res = files;
+  for(const item in res){
+    // Check if the value of the current item is a string, which would indicate that the current item is a file and not a folder
+    if(typeof res[item] === 'string') continue;
+
+    // Otherwise the current item is a folder
+    if(item === targetFolder){
+      if(prospectiveFolder in res[item]){
+        return null;
+      }
+      res[item][prospectiveFolder] = {};
+      return res;
+    }
+    // Recurse the subfolder if the current folder is not the targetFolder
+    return RecurseFilesFindTargetFolder(res, targetFolder, prospectiveFolder)
+  }
+  return null;
+}
+
+export async function DeleteFolder(targetFolder: any, files: any){
+  
+}
 
 const FormSchema = z.object({
   id: z.string(),

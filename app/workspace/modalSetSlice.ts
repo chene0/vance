@@ -10,7 +10,7 @@ const initialState: ModalSetState = {
 }
 
 export const modalSetSlice = createSlice({
-    name: 'modal',
+    name: 'modalSet',
     initialState,
     reducers: {
         setModalSetState: (state) => {

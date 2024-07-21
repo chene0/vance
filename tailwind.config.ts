@@ -16,6 +16,12 @@ const config: Config = {
           "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
       },
     },
+    // colors: {
+    //   "primary": "477D7F",
+    //   "secondary": "1F5357",
+    //   "tertiary": "64BD97",
+    //   "quaternary": "C2FFBB",
+    // },
   },
   plugins: [
     flowbite.plugin(),

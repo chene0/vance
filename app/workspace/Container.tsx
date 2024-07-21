@@ -1,6 +1,6 @@
 'use client'
 
-import { Button, Modal } from "flowbite-react";
+import { Button, Modal, TextInput } from "flowbite-react";
 import { redirect } from 'next/navigation'
 import Sidebar from './Sidebar'
 import { signOut } from './workspaceActions'
@@ -14,6 +14,9 @@ import { store } from '../store'
 import { Document, Page } from 'react-pdf'
 import { pdfjs } from 'react-pdf';
 import { getModalSetState, setModalSetState } from "./modalSetSlice";
+import { getModalFolderState, setModalFolderState } from "./modalFolderSlice"
+import { AddFolder } from "../lib/actions";
+import { getModalFolderDeletionState, setModalFolderDeletionState } from "./modalFolderDeletionSlice";
 
 // pdfjs.GlobalWorkerOptions.workerSrc = new URL(
 //     'pdfjs-dist/legacy/build/pdf.worker.min.mjs',
@@ -41,11 +44,14 @@ export function Container({ user }: { user: any }) {
     const files = user[0]?.content;
 
     const modalSetState = useAppSelector(getModalSetState).open;
+    const modalFolderState = useAppSelector(getModalFolderState);
+    const modalFolderDeletionState = useAppSelector(getModalFolderDeletionState);
     const selectedFile = useAppSelector(selectWorkspace).entities;
     const dispatch = useAppDispatch()
 
     const [numPages, setNumPages] = useState<number>();
     const [pageNumber, setPageNumber] = useState<number>(1);
+    const [currentFiles, setCurrentFiles] = useState(files);
 
     function onDocumentLoadSuccess({ numPages }: { numPages: number }): void {
         setNumPages(numPages);
@@ -53,7 +59,7 @@ export function Container({ user }: { user: any }) {
 
     return (
         <div>
-            <Sidebar files={files} />
+            <Sidebar files={currentFiles} />
             <form
                 action={signOut}
             >
@@ -69,8 +75,10 @@ export function Container({ user }: { user: any }) {
                     Page {pageNumber} of {numPages}
                 </p>
             </div>
+
+            {/* MODAL FOR CREATING A SET */}
             <Modal show={modalSetState} onClose={() => dispatch(setModalSetState())}>
-                <Modal.Header>Terms of Service</Modal.Header>
+                <Modal.Header></Modal.Header>
                 <Modal.Body>
                     <div className="space-y-6">
                         <p className="text-base leading-relaxed text-gray-500 dark:text-gray-400">
@@ -83,6 +91,39 @@ export function Container({ user }: { user: any }) {
                             soon as possible of high-risk data breaches that could personally affect them.
                         </p>
                     </div>
+                </Modal.Body>
+                <Modal.Footer>
+                </Modal.Footer>
+            </Modal>
+
+            {/* MODAL FOR CREATING A FOLDER */}
+            <Modal show={modalFolderState.open} onClose={() => dispatch(setModalFolderState(''))}>
+                <Modal.Header></Modal.Header>
+                <Modal.Body>
+                    <form action={async (formData) => {
+                        const parentFolder = modalFolderState.folder;
+                        const prospectiveFolder = formData.get("folder-name");
+                        const updatedFiles = await AddFolder(parentFolder, prospectiveFolder as string, currentFiles, user[0]);
+                        setCurrentFiles(await updatedFiles)
+                    }}>
+                        <TextInput type="text" name="folder-name" />
+                        <Button type="submit">Add Subfolder</Button>
+                    </form>
+                </Modal.Body>
+                <Modal.Footer>
+                </Modal.Footer>
+            </Modal>
+
+
+            {/* MODAL FOR DELETING A FOLDER */}
+            <Modal show={modalFolderDeletionState.open} onClose={() => dispatch(setModalFolderDeletionState(''))}>
+                <Modal.Header>Attention: Proceed with deleting this folder and its contents?</Modal.Header>
+                <Modal.Body>
+                    <form action={async () => {
+
+                    }}>
+                        <Button type="submit">Yes</Button>
+                    </form>
                 </Modal.Body>
                 <Modal.Footer>
                 </Modal.Footer>

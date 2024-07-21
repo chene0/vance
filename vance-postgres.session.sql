@@ -1,0 +1,2 @@
+SELECT "content"
+FROM "user";

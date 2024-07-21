@@ -1,11 +1,15 @@
 import { configureStore } from "@reduxjs/toolkit";
 import workspaceReducer  from "./workspace/workspaceSlice";
 import modalSetSliceReducer from "./workspace/modalSetSlice";
+import modalFolderSliceReducer from "./workspace/modalFolderSlice";
+import modalFolderDeletionSlice from "./workspace/modalFolderDeletionSlice";
 
 export const store = configureStore({
     reducer: {
         workspace: workspaceReducer,
-        modalSet: modalSetSliceReducer
+        modalSet: modalSetSliceReducer,
+        modalFolder: modalFolderSliceReducer,
+        modalFolderDeletion: modalFolderDeletionSlice,
     }
 })
 

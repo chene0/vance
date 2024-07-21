@@ -11,9 +11,10 @@ import { use } from "react";
 import { useAppSelector, useAppDispatch } from '../hooks'
 import { setSelectedFile, selectWorkspace, fetchFileByRawURL } from './workspaceSlice'
 import { getModalSetState, setModalSetState } from "./modalSetSlice";
+import { setModalFolderState } from "./modalFolderSlice";
+import { setModalFolderDeletionState } from "./modalFolderDeletionSlice";
 
 function RecurseFiles(files: any) {
-  const selectedFile = useAppSelector(selectWorkspace)
   const dispatch = useAppDispatch()
 
   const res: any[] = []
@@ -39,10 +40,22 @@ function RecurseFiles(files: any) {
           <ContextMenu.Portal>
             <ContextMenu.Content className="ContextMenuContent">
               <a className="block max-w-sm p-6 bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700">
-                <ContextMenu.Item className="ContextMenuItem text-black">
-                  Add Subfolder
+                <h1 className="text-black">{item}</h1>
+                <ContextMenu.Item className="ContextMenuItem text-black my-1">
+                  <Button onClick={() => {
+                    dispatch(setModalFolderDeletionState(item))
+                  }}>
+                    Delete this folder
+                  </Button>
                 </ContextMenu.Item>
-                <ContextMenu.Item className="ContextMenuItem text-black">
+                <ContextMenu.Item className="ContextMenuItem text-black my-1">
+                  <Button onClick={() => {
+                    dispatch(setModalFolderState(item))
+                  }}>
+                    Add Subfolder
+                  </Button>
+                </ContextMenu.Item>
+                <ContextMenu.Item className="ContextMenuItem text-black my-1">
                   <Button onClick={() => dispatch(setModalSetState())}>
                     Create new set
                   </Button>
