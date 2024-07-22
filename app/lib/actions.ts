@@ -8,6 +8,7 @@ const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { awsCredentialsProvider } from '@vercel/functions/oidc';
 import { redirect } from 'next/navigation';
+import { Alegreya_SC } from 'next/font/google';
 
 const AWS_ROLE_ARN = process.env.AWS_ROLE_ARN!;
 
@@ -31,8 +32,10 @@ export const GetFileFromBucket = async (file: string) => {
     }
 }
 
+let isAdded = false;
 export async function AddFolder(parentFolder: string, prospectiveFolder: string, files: any, user: any){
   const newStructure = RecurseFilesFindTargetFolder(files, parentFolder, prospectiveFolder)
+  isAdded = false;
   console.log(await updateUserById(user.id as string, {
     content: newStructure
   }));
@@ -42,25 +45,58 @@ export async function AddFolder(parentFolder: string, prospectiveFolder: string,
 function RecurseFilesFindTargetFolder(files: any, targetFolder: string, prospectiveFolder: any){
   let res = files;
   for(const item in res){
+    if(isAdded) return res;
+
     // Check if the value of the current item is a string, which would indicate that the current item is a file and not a folder
     if(typeof res[item] === 'string') continue;
 
     // Otherwise the current item is a folder
     if(item === targetFolder){
       if(prospectiveFolder in res[item]){
-        return null;
+        return res;
       }
       res[item][prospectiveFolder] = {};
+      isAdded = true;
       return res;
     }
     // Recurse the subfolder if the current folder is not the targetFolder
-    return RecurseFilesFindTargetFolder(res, targetFolder, prospectiveFolder)
+    res = {
+      ...res,
+      [item]: RecurseFilesFindTargetFolder(res[item], targetFolder, prospectiveFolder)
+    }
   }
-  return null;
+  return res;
 }
 
-export async function DeleteFolder(targetFolder: any, files: any){
-  
+let isDeleted = false;
+export async function DeleteFolder(targetFolder: any, files: any, user: any){
+  const newStructure = RecurseFilesDeleteTargetFolder(targetFolder, files);
+  isDeleted = false;
+  console.log("🚀 ~ DeleteFolder ~ newStructure:", newStructure)
+  console.log(await updateUserById(user.id as string, {
+    content: newStructure
+  }));
+  return newStructure;
+}
+
+function RecurseFilesDeleteTargetFolder(targetFolder: any, files: any) : any{
+  let res = files;
+  for(const item in res){
+    if(isDeleted) return res;
+    console.log("🚀 ~ RecurseFilesDeleteTargetFolder ~ item:", item)
+    if(typeof res[item] === 'string') continue;
+
+    if(item === targetFolder){
+      delete res[item];
+      isDeleted = true;
+      return res;
+    }
+    res = {
+      ...res,
+      [item]: RecurseFilesDeleteTargetFolder(targetFolder, res[item])
+    }
+  }
+  return res;
 }
 
 const FormSchema = z.object({

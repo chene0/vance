@@ -15,7 +15,7 @@ import { Document, Page } from 'react-pdf'
 import { pdfjs } from 'react-pdf';
 import { getModalSetState, setModalSetState } from "./modalSetSlice";
 import { getModalFolderState, setModalFolderState } from "./modalFolderSlice"
-import { AddFolder } from "../lib/actions";
+import { AddFolder, DeleteFolder } from "../lib/actions";
 import { getModalFolderDeletionState, setModalFolderDeletionState } from "./modalFolderDeletionSlice";
 
 // pdfjs.GlobalWorkerOptions.workerSrc = new URL(
@@ -105,6 +105,7 @@ export function Container({ user }: { user: any }) {
                         const prospectiveFolder = formData.get("folder-name");
                         const updatedFiles = await AddFolder(parentFolder, prospectiveFolder as string, currentFiles, user[0]);
                         setCurrentFiles(await updatedFiles)
+                        dispatch(setModalFolderState(''))
                     }}>
                         <TextInput type="text" name="folder-name" />
                         <Button type="submit">Add Subfolder</Button>
@@ -120,7 +121,11 @@ export function Container({ user }: { user: any }) {
                 <Modal.Header>Attention: Proceed with deleting this folder and its contents?</Modal.Header>
                 <Modal.Body>
                     <form action={async () => {
-
+                        const targetFolder = modalFolderDeletionState.folder;
+                        console.log("🚀 ~ <formaction={ ~ targetFolder:", targetFolder)
+                        const updatedFiles = await DeleteFolder(targetFolder, currentFiles, user[0]);
+                        setCurrentFiles(await updatedFiles);
+                        dispatch(setModalFolderDeletionState(''))
                     }}>
                         <Button type="submit">Yes</Button>
                     </form>
