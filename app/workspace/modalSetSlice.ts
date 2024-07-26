@@ -2,20 +2,23 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit"
 import { RootState } from "../store"
 
 export interface ModalSetState {
-    open: boolean
+    open: boolean,
+    folder: string,
 }
 
 const initialState: ModalSetState = {
-    open: false
+    open: false,
+    folder: '',
 }
 
 export const modalSetSlice = createSlice({
     name: 'modalSet',
     initialState,
     reducers: {
-        setModalSetState: (state) => {
+        setModalSetState: (state, action: PayloadAction<any>) => {
             const prev = state.open;
             state.open = !prev;
+            state.folder = action.payload;
         }
     }
 })

@@ -15,8 +15,12 @@ import { Document, Page } from 'react-pdf'
 import { pdfjs } from 'react-pdf';
 import { getModalSetState, setModalSetState } from "./modalSetSlice";
 import { getModalFolderState, setModalFolderState } from "./modalFolderSlice"
-import { AddFolder, DeleteFolder } from "../lib/actions";
+import { AddFolder, CreateSet, DeleteFolder } from "../lib/actions";
 import { getModalFolderDeletionState, setModalFolderDeletionState } from "./modalFolderDeletionSlice";
+
+import { fromBase64, fromBuffer } from "pdf2pic";
+import { PDFDocument } from "pdf-lib"
+import Tesseract, { createWorker } from 'tesseract.js';
 
 // pdfjs.GlobalWorkerOptions.workerSrc = new URL(
 //     'pdfjs-dist/legacy/build/pdf.worker.min.mjs',
@@ -43,7 +47,7 @@ export function Container({ user }: { user: any }) {
 
     const files = user[0]?.content;
 
-    const modalSetState = useAppSelector(getModalSetState).open;
+    const modalSetState = useAppSelector(getModalSetState);
     const modalFolderState = useAppSelector(getModalFolderState);
     const modalFolderDeletionState = useAppSelector(getModalFolderDeletionState);
     const selectedFile = useAppSelector(selectWorkspace).entities;
@@ -77,20 +81,30 @@ export function Container({ user }: { user: any }) {
             </div>
 
             {/* MODAL FOR CREATING A SET */}
-            <Modal show={modalSetState} onClose={() => dispatch(setModalSetState())}>
+            <Modal show={modalSetState.open} onClose={() => dispatch(setModalSetState(''))}>
                 <Modal.Header></Modal.Header>
                 <Modal.Body>
-                    <div className="space-y-6">
-                        <p className="text-base leading-relaxed text-gray-500 dark:text-gray-400">
-                            With less than a month to go before the European Union enacts new consumer privacy laws for its citizens,
-                            companies around the world are updating their terms of service agreements to comply.
-                        </p>
-                        <p className="text-base leading-relaxed text-gray-500 dark:text-gray-400">
-                            The European Union’s General Data Protection Regulation (G.D.P.R.) goes into effect on May 25 and is meant
-                            to ensure a common set of data rights in the European Union. It requires organizations to notify users as
-                            soon as possible of high-risk data breaches that could personally affect them.
-                        </p>
-                    </div>
+                    <form onSubmit={async (event) => {
+                        event.preventDefault();
+                        const formData = new FormData(event.target as HTMLFormElement);
+                        const file = formData.get("file") as File;
+                        const setName = formData.get("set-name") as string;
+                        const buffer = await file.arrayBuffer();
+                        const uintarr = new Uint8Array(await buffer);
+
+                        const pdfDoc = await PDFDocument.load(await uintarr);
+                        const numberOfPages = pdfDoc.getPageCount();
+
+                        const parentFolder = modalSetState.folder;
+
+                        const updatedFiles = await CreateSet(user[0], setName, parentFolder, uintarr, numberOfPages);
+                        setCurrentFiles(await updatedFiles);
+                        dispatch(setModalSetState(''));
+                    }}>
+                        <TextInput type="text" name="set-name" />
+                        <input type="file" name="file" />
+                        <Button type="submit">Create Set</Button>
+                    </form>
                 </Modal.Body>
                 <Modal.Footer>
                 </Modal.Footer>

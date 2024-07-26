@@ -5,10 +5,11 @@ import { createUser, updateUserById } from '@/src/db/queries';
 import { signIn } from "@/auth"
 // const argon2 = require('argon2');
 const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
-import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { awsCredentialsProvider } from '@vercel/functions/oidc';
-import { redirect } from 'next/navigation';
-import { Alegreya_SC } from 'next/font/google';
+import { fromBase64, fromBuffer, fromPath } from "pdf2pic";
+import Tesseract, { createWorker } from 'tesseract.js';
+const randomstring = require('randomstring');
 
 const AWS_ROLE_ARN = process.env.AWS_ROLE_ARN!;
 
@@ -18,6 +19,7 @@ const client = new S3Client({
   }),
 });
 
+// TODO: CONFORM TO NEW FILE STRUCTURE & READ FROM PROCESSED BUCKET INSTEAD
 export const GetFileFromBucket = async (file: string) => {
     const command = new GetObjectCommand({
         Bucket: "vance29834",
@@ -30,6 +32,50 @@ export const GetFileFromBucket = async (file: string) => {
     } catch (err) {
         console.error(err);
     }
+}
+
+let isSetCreated = false;
+export async function CreateSet(user: any, setName: string, parentFolder: string, fileUintarr: Uint8Array, pageCount: number) {
+  const buffer = Buffer.from(fileUintarr);
+  console.log("🚀 ~ CreateSet ~ buffer:", buffer);
+  const hash = randomstring.generate(44);
+  
+  // Upload the file to the S3 bucket
+  const command = new PutObjectCommand({
+    Bucket: "vance29834",
+    Body: buffer,
+    Key: (user.id as string) + "/" + "file" + hash + ".pdf",
+  });
+  const response = await client.send(command);
+  console.log("🚀 ~ CreateSet ~ response:", response)
+
+  // Update user's content json with the new set
+  const newStructure = RecurseFilesCreateSet(user.content, parentFolder, setName, hash);
+  isSetCreated = false;
+  console.log(await updateUserById(user.id as string, {
+    content: newStructure
+  }));
+  return newStructure;
+}
+
+function RecurseFilesCreateSet(files: any, parentFolder: string, setName: string, hash: string){
+  let res = files;
+  for(const item in res){
+    if(isSetCreated) return res;
+
+    if(typeof res[item] === 'string') continue;
+
+    if(item === parentFolder){
+      res[item][setName] = "file" + hash + ".pdf";
+      isSetCreated = true;
+      return res;
+    }
+    res = {
+      ...res,
+      [item]: RecurseFilesCreateSet(res[item], parentFolder, setName, hash)
+    }
+  }
+  return res;
 }
 
 let isAdded = false;

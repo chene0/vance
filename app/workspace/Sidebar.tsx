@@ -56,7 +56,7 @@ function RecurseFiles(files: any) {
                   </Button>
                 </ContextMenu.Item>
                 <ContextMenu.Item className="ContextMenuItem text-black my-1">
-                  <Button onClick={() => dispatch(setModalSetState())}>
+                  <Button onClick={() => dispatch(setModalSetState(item))}>
                     Create new set
                   </Button>
                 </ContextMenu.Item>
