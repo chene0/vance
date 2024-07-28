@@ -15,7 +15,7 @@ import { Document, Page } from 'react-pdf'
 import { pdfjs } from 'react-pdf';
 import { getModalSetState, setModalSetState } from "./modalSetSlice";
 import { getModalFolderState, setModalFolderState } from "./modalFolderSlice"
-import { AddFolder, CreateSet, DeleteFolder } from "../lib/actions";
+import { AddFolder, CreateSet, DeleteFolder, ProcessFile } from "../lib/actions";
 import { getModalFolderDeletionState, setModalFolderDeletionState } from "./modalFolderDeletionSlice";
 
 import { fromBase64, fromBuffer } from "pdf2pic";
@@ -50,7 +50,7 @@ export function Container({ user }: { user: any }) {
     const modalSetState = useAppSelector(getModalSetState);
     const modalFolderState = useAppSelector(getModalFolderState);
     const modalFolderDeletionState = useAppSelector(getModalFolderDeletionState);
-    const selectedFile = useAppSelector(selectWorkspace).entities;
+    const selectedFile = useAppSelector(selectWorkspace);
     const dispatch = useAppDispatch()
 
     const [numPages, setNumPages] = useState<number>();
@@ -63,16 +63,22 @@ export function Container({ user }: { user: any }) {
 
     return (
         <div>
-            <Sidebar files={currentFiles} />
+            <Sidebar files={currentFiles} userId={user[0].id} />
             <form
                 action={signOut}
             >
-                <button className="flex h-[48px] grow items-center justify-center gap-2 rounded-md bg-gray-50 p-3 text-sm font-medium hover:bg-sky-100 hover:text-blue-600 md:flex-none md:justify-start md:p-2 md:px-3">
+                <Button type="submit">
                     <div className="hidden md:block">Sign Out</div>
-                </button>
+                </Button>
             </form>
+            <form action={() => {
+                ProcessFile(selectedFile.raw, numPages as number);
+            }}>
+                <Button type="submit">Automatically detect questions</Button>
+            </form>
+
             <div>
-                <Document file={selectedFile[selectedFile.length - 1]} onLoadSuccess={onDocumentLoadSuccess}>
+                <Document file={selectedFile.entities[selectedFile.entities.length - 1]} onLoadSuccess={onDocumentLoadSuccess}>
                     <Page pageNumber={pageNumber} />
                 </Document>
                 <p>

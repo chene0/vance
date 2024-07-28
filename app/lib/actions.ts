@@ -4,11 +4,12 @@ import { z } from 'zod'
 import { createUser, updateUserById } from '@/src/db/queries';
 import { signIn } from "@/auth"
 // const argon2 = require('argon2');
-const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { awsCredentialsProvider } from '@vercel/functions/oidc';
 import { fromBase64, fromBuffer, fromPath } from "pdf2pic";
 import Tesseract, { createWorker } from 'tesseract.js';
+import fetch from "node-fetch";
 const randomstring = require('randomstring');
 
 const AWS_ROLE_ARN = process.env.AWS_ROLE_ARN!;
@@ -19,7 +20,31 @@ const client = new S3Client({
   }),
 });
 
-// TODO: CONFORM TO NEW FILE STRUCTURE & READ FROM PROCESSED BUCKET INSTEAD
+export const ProcessFile = async (file: string, numPages: number) => {
+  // Create a signed url from each **JPEG** page such that the Tesseract worker can read the image
+  for(let i = 0; i < numPages; i++){
+    const key = `${file}/${i.toString()}.jpg`;
+    const command = new GetObjectCommand({
+      Bucket: "vance-processed12093",
+      Key: key
+    });
+    
+    // const currentUrl = await getSignedUrl(client, command, {expiresIn: 300});
+    // console.log("🚀 ~ ProcessFile ~ currentUrl:", currentUrl);
+    const response = client.send(command);
+    const bytes = (await response).Body?.transformToByteArray();
+    const buffer = Buffer.from(await bytes as Uint8Array);
+
+    (async () => {
+      const worker = await createWorker('eng', 1, {workerPath: "./node_modules/tesseract.js/src/worker-script/node/index.js"});
+      const ret = await worker.recognize(buffer);
+      console.log(ret);
+      await worker.terminate();
+    })();
+    break;
+  }
+}
+
 export const GetFileFromBucket = async (file: string) => {
     const command = new GetObjectCommand({
         Bucket: "vance29834",
@@ -44,7 +69,7 @@ export async function CreateSet(user: any, setName: string, parentFolder: string
   const command = new PutObjectCommand({
     Bucket: "vance29834",
     Body: buffer,
-    Key: (user.id as string) + "/" + "file" + hash + ".pdf",
+    Key: "file" + hash + ".pdf",
   });
   const response = await client.send(command);
   console.log("🚀 ~ CreateSet ~ response:", response)

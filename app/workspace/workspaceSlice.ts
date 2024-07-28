@@ -9,17 +9,19 @@ export const fetchFileByRawURL = createAsyncThunk(
     async (rawURL: string, thunkAPI) => {
         // GetFileFromBucket already returns the signed URL
         const response = await GetFileFromBucket(rawURL);
-        return response;
+        return [await response, rawURL];
     }
 )
 
 export interface WorkspaceState {
     entities: string[],
+    raw: string,
     loading: 'idle' | 'pending' | 'succeeded' | 'failed',
 }
 
 const initialState: WorkspaceState = {
     entities: [],
+    raw: '',
     loading: 'idle',
 }
 
@@ -33,7 +35,8 @@ export const workspaceSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder.addCase(fetchFileByRawURL.fulfilled, (state, action) => {
-            state.entities.push(action.payload);
+            state.entities.push(action.payload[0] as string);
+            state.raw = action.payload[1] as string;
         })
     }
 })

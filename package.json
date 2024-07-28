@@ -24,6 +24,7 @@
     "fs": "^0.0.1-security",
     "next": "14.2.4",
     "next-auth": "^5.0.0-beta.19",
+    "node-fetch": "^2.7.0",
     "pdf-lib": "^1.17.1",
     "pdf2pic": "^3.1.1",
     "pdfjs-dist": "^4.4.168",
@@ -35,12 +36,13 @@
     "react-redux": "^9.1.2",
     "redux-thunk": "^3.1.0",
     "spawn-sync": "^2.0.0",
-    "tesseract.js": "^4.1.1",
+    "tesseract.js": "^5.1.0",
     "vercel": "^34.2.8",
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@types/node": "^20",
+    "@types/node": "^20.14.12",
+    "@types/node-fetch": "^2.6.11",
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "drizzle-kit": "^0.22.8",
