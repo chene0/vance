@@ -1,6 +1,6 @@
 'use client'
 
-import { Button, Modal, TextInput } from "flowbite-react";
+import { Button, Modal, TextInput, FileInput } from "flowbite-react";
 import { redirect } from 'next/navigation'
 import Sidebar from './Sidebar'
 import { signOut } from './workspaceActions'
@@ -15,8 +15,9 @@ import { Document, Page } from 'react-pdf'
 import { pdfjs } from 'react-pdf';
 import { getModalSetState, setModalSetState } from "./modalSetSlice";
 import { getModalFolderState, setModalFolderState } from "./modalFolderSlice"
-import { AddFolder, CreateSet, DeleteFolder, ProcessFile } from "../lib/actions";
+import { AddFolder, CreateSet, DeleteFolder, DeleteSet, ProcessFile } from "../lib/actions";
 import { getModalFolderDeletionState, setModalFolderDeletionState } from "./modalFolderDeletionSlice";
+import { getModalSetDeletionState, setModalSetDeletionState } from "./modalSetDeletionSlice";
 
 import { fromBase64, fromBuffer } from "pdf2pic";
 import { PDFDocument } from "pdf-lib"
@@ -48,6 +49,7 @@ export function Container({ user }: { user: any }) {
     const files = user[0]?.content;
 
     const modalSetState = useAppSelector(getModalSetState);
+    const modalSetDeletionState = useAppSelector(getModalSetDeletionState);
     const modalFolderState = useAppSelector(getModalFolderState);
     const modalFolderDeletionState = useAppSelector(getModalFolderDeletionState);
     const selectedFile = useAppSelector(selectWorkspace);
@@ -108,8 +110,27 @@ export function Container({ user }: { user: any }) {
                         dispatch(setModalSetState(''));
                     }}>
                         <TextInput type="text" name="set-name" />
-                        <input type="file" name="file" />
+                        <FileInput name="file" />
                         <Button type="submit">Create Set</Button>
+                    </form>
+                </Modal.Body>
+                <Modal.Footer>
+                </Modal.Footer>
+            </Modal>
+
+            {/* MODAL FOR DELETING A SET */}
+            <Modal show={modalSetDeletionState.open} onClose={() => dispatch(setModalSetDeletionState(''))}>
+                <Modal.Header>Attention: Proceed with deleting this set?</Modal.Header>
+                <Modal.Body>
+                    <form onSubmit={async (event) => {
+                        event.preventDefault();
+                        const targetSetID = modalSetDeletionState.set;
+                        console.log("🚀 ~ <formonSubmit={ ~ targetSetID:", targetSetID)
+                        const updatedFiles = DeleteSet(user[0], currentFiles, targetSetID);
+                        setCurrentFiles(await updatedFiles);
+                        dispatch(setModalSetDeletionState(''))
+                    }}>
+                        <Button type="submit">Delete set</Button>
                     </form>
                 </Modal.Body>
                 <Modal.Footer>
@@ -147,7 +168,7 @@ export function Container({ user }: { user: any }) {
                         setCurrentFiles(await updatedFiles);
                         dispatch(setModalFolderDeletionState(''))
                     }}>
-                        <Button type="submit">Yes</Button>
+                        <Button type="submit">Delete folder</Button>
                     </form>
                 </Modal.Body>
                 <Modal.Footer>

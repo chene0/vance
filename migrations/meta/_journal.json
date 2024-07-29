@@ -15,6 +15,13 @@
       "when": 1720647061675,
       "tag": "0001_rapid_randall_flagg",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1722286726226,
+      "tag": "0002_loving_sway",
+      "breakpoints": true
     }
   ]
 }

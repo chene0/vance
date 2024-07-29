@@ -5,11 +5,12 @@ import { createUser, updateUserById } from '@/src/db/queries';
 import { signIn } from "@/auth"
 // const argon2 = require('argon2');
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { awsCredentialsProvider } from '@vercel/functions/oidc';
 import { fromBase64, fromBuffer, fromPath } from "pdf2pic";
 import Tesseract, { createWorker } from 'tesseract.js';
 import fetch from "node-fetch";
+import { PDFDocument } from 'pdf-lib';
 const randomstring = require('randomstring');
 
 const AWS_ROLE_ARN = process.env.AWS_ROLE_ARN!;
@@ -28,9 +29,9 @@ export const ProcessFile = async (file: string, numPages: number) => {
       Bucket: "vance-processed12093",
       Key: key
     });
-    
-    // const currentUrl = await getSignedUrl(client, command, {expiresIn: 300});
-    // console.log("🚀 ~ ProcessFile ~ currentUrl:", currentUrl);
+
+    // Get the buffer from the s3 object
+    // NOTE: Avoid using signed urls for this as the Tesseract worker will raise "fetch is the a function" error
     const response = client.send(command);
     const bytes = (await response).Body?.transformToByteArray();
     const buffer = Buffer.from(await bytes as Uint8Array);
@@ -38,6 +39,7 @@ export const ProcessFile = async (file: string, numPages: number) => {
     (async () => {
       const worker = await createWorker('eng', 1, {workerPath: "./node_modules/tesseract.js/src/worker-script/node/index.js"});
       const ret = await worker.recognize(buffer);
+      // ret: we are interated in the hocr, which should provide the bounding box of the text
       console.log(ret);
       await worker.terminate();
     })();
@@ -82,7 +84,6 @@ export async function CreateSet(user: any, setName: string, parentFolder: string
   }));
   return newStructure;
 }
-
 function RecurseFilesCreateSet(files: any, parentFolder: string, setName: string, hash: string){
   let res = files;
   for(const item in res){
@@ -98,6 +99,81 @@ function RecurseFilesCreateSet(files: any, parentFolder: string, setName: string
     res = {
       ...res,
       [item]: RecurseFilesCreateSet(res[item], parentFolder, setName, hash)
+    }
+  }
+  return res;
+}
+
+let isSetDeleted = false;
+export async function DeleteSet(user: any, files: any, targetSetID: string){
+  let numberOfPages = 0;
+
+  const commandForPageCount = new GetObjectCommand({
+    Bucket: "vance29834",
+    Key: targetSetID,
+  });
+  try {
+    const response = await client.send(commandForPageCount);
+    const bytes = (await response).Body?.transformToByteArray();
+    const pdfDoc = await PDFDocument.load(await bytes as Uint8Array);
+    numberOfPages = pdfDoc.getPageCount();
+  } catch (err) {
+    console.error(err);
+  }
+
+  // Delete any processed images from the S3 bucket
+  for(let i = 0; i < numberOfPages; i++){
+    const key = `${targetSetID}/${i.toString()}.jpg`;
+    const commandForProcessed = new DeleteObjectCommand({
+      Bucket: "vance-processed12093",
+      Key: key,
+    });
+    try{
+      const response = await client.send(commandForProcessed);
+      console.log(response);
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  // Delete the raw pdf from the other S3 bucket
+  const commandForRaw = new DeleteObjectCommand({
+    Bucket: "vance29834",
+    Key: targetSetID,
+  })
+  try{
+    const response = await client.send(commandForRaw);
+    console.log(response);
+  } catch (err) {
+    console.error(err);
+  }
+  
+
+  // Update user's content json with the set removed
+  const newStructure = RecurseFilesDeleteSet(files, targetSetID);
+  console.log("🚀 ~ DeleteSet ~ newStructure:", newStructure)
+  isSetDeleted = false;
+  console.log(await updateUserById(user.id as string, {
+    content: newStructure
+  }));
+  return newStructure;
+}
+function RecurseFilesDeleteSet(files: any, targetSetID: string) : any{
+  let res = files;
+  for(const item in res){
+    if(isSetDeleted) return res;
+    
+    if(typeof res[item] === 'string'){
+      if(res[item] === targetSetID){
+        delete res[item];
+        isSetDeleted = true;
+        return res;
+      }
+      continue;
+    }
+    res = {
+      ...res,
+      [item]: RecurseFilesDeleteSet(res[item], targetSetID)
     }
   }
   return res;

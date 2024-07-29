@@ -98,5 +98,26 @@ export const authenticators = pgTable(
   })
 )
 
+export const files = pgTable(
+  'file',
+  {
+    id: text('id').primaryKey(),
+    userId: text('userId').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  }
+)
+
+export const questions = pgTable(
+  'question',
+  {
+    id: text('id').primaryKey(),
+    fileId: text('fileId').notNull().references(() => files.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    pageNumber: integer('pageNumber').notNull(),
+    leftBound: integer('leftBound').notNull(),
+    topBound: integer('topBound').notNull(),
+    priorityRating: integer('priorityRating').notNull(),
+  }
+)
+
 export type InsertUser = typeof users.$inferInsert;
 export type SelectUser = typeof users.$inferSelect;

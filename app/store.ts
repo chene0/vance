@@ -3,6 +3,7 @@ import workspaceReducer  from "./workspace/workspaceSlice";
 import modalSetSliceReducer from "./workspace/modalSetSlice";
 import modalFolderSliceReducer from "./workspace/modalFolderSlice";
 import modalFolderDeletionSlice from "./workspace/modalFolderDeletionSlice";
+import modalSetDeletionSlice from "./workspace/modalSetDeletionSlice";
 
 export const store = configureStore({
     reducer: {
@@ -10,6 +11,7 @@ export const store = configureStore({
         modalSet: modalSetSliceReducer,
         modalFolder: modalFolderSliceReducer,
         modalFolderDeletion: modalFolderDeletionSlice,
+        modalSetDeletion: modalSetDeletionSlice
     }
 })
 
