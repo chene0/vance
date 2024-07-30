@@ -1,7 +1,7 @@
 'use server'
 
 import { z } from 'zod'
-import { createUser, updateUserById } from '@/src/db/queries';
+import { createSet, createUser, deleteSetById, updateUserById } from '@/src/db/queries';
 import { signIn } from "@/auth"
 // const argon2 = require('argon2');
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
@@ -76,6 +76,12 @@ export async function CreateSet(user: any, setName: string, parentFolder: string
   const response = await client.send(command);
   console.log("🚀 ~ CreateSet ~ response:", response)
 
+  // Add row to "files" table in the database
+  await createSet({
+    id: "file" + hash + ".pdf",
+    userId: user.id,
+  })
+
   // Update user's content json with the new set
   const newStructure = RecurseFilesCreateSet(user.content, parentFolder, setName, hash);
   isSetCreated = false;
@@ -108,6 +114,7 @@ let isSetDeleted = false;
 export async function DeleteSet(user: any, files: any, targetSetID: string){
   let numberOfPages = 0;
 
+  // Get the number of pages in the pdf file
   const commandForPageCount = new GetObjectCommand({
     Bucket: "vance29834",
     Key: targetSetID,
@@ -148,6 +155,8 @@ export async function DeleteSet(user: any, files: any, targetSetID: string){
     console.error(err);
   }
   
+  // Remove the row from the "files" table in the database
+  await deleteSetById(targetSetID);
 
   // Update user's content json with the set removed
   const newStructure = RecurseFilesDeleteSet(files, targetSetID);

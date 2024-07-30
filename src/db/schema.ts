@@ -121,3 +121,5 @@ export const questions = pgTable(
 
 export type InsertUser = typeof users.$inferInsert;
 export type SelectUser = typeof users.$inferSelect;
+
+export type InsertFile = typeof files.$inferInsert;
