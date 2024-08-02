@@ -1,7 +1,7 @@
 'use server'
 
 import { z } from 'zod'
-import { createSet, createUser, deleteSetById, updateUserById } from '@/src/db/queries';
+import { createQuestion, createSet, createUser, deleteSetById, getQuestionsByPageNumberAndFileId, updateUserById } from '@/src/db/queries';
 import { signIn } from "@/auth"
 // const argon2 = require('argon2');
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
@@ -11,7 +11,10 @@ import { fromBase64, fromBuffer, fromPath } from "pdf2pic";
 import Tesseract, { createWorker } from 'tesseract.js';
 import fetch from "node-fetch";
 import { PDFDocument } from 'pdf-lib';
+import { is } from 'drizzle-orm';
+import { parse } from 'path';
 const randomstring = require('randomstring');
+const randomColor = require('randomcolor');
 
 const AWS_ROLE_ARN = process.env.AWS_ROLE_ARN!;
 
@@ -31,7 +34,7 @@ export const ProcessFile = async (file: string, numPages: number) => {
     });
 
     // Get the buffer from the s3 object
-    // NOTE: Avoid using signed urls for this as the Tesseract worker will raise "fetch is the a function" error
+    // NOTE: Avoid using signed urls for this as the Tesseract worker will raise "fetch is not a function" error
     const response = client.send(command);
     const bytes = (await response).Body?.transformToByteArray();
     const buffer = Buffer.from(await bytes as Uint8Array);
@@ -39,12 +42,105 @@ export const ProcessFile = async (file: string, numPages: number) => {
     (async () => {
       const worker = await createWorker('eng', 1, {workerPath: "./node_modules/tesseract.js/src/worker-script/node/index.js"});
       const ret = await worker.recognize(buffer);
-      // ret: we are interated in the hocr, which should provide the bounding box of the text
-      console.log(ret);
+
+
+      console.log(ret.data.text);
+      const tsv = ret.data.tsv?.split('\n').map((line: string) => line.split('\t'));
+      // 6: x0, 7: y0, 11: str
+      const processed = ProcessPage(tsv!);
+      console.log(processed);
+
+      for(const item of processed){
+        const name = item.name;
+        const x0 = item.x0;
+        const y0 = item.y0;
+
+        const hash = randomstring.generate(44);
+
+        console.log(name, x0, y0);
+        await createQuestion({
+          id: "question" + hash,
+          fileId: file,
+          name: name,
+          pageNumber: i,
+          leftBound: x0,
+          topBound: y0,
+          priorityRating: 0,
+          color: randomColor(),
+        })
+      }
+
       await worker.terminate();
     })();
-    break;
   }
+}
+const ProcessPage = (tsx: string[][]) => {
+  interface Map {
+    [key: string]: [{}] | undefined
+  }
+  let map : Map = {};
+  for(const token of tsx){
+    const str = token[11];
+    if(!str) continue;
+    let isIdentifierFound = false;
+    let name = '';
+    for(let i = 0; i < str.length; i++){
+      if(str[i] === '.' || str[i] === ')'){
+        name = str.slice(0, i);
+        isIdentifierFound = true;
+        break;
+      }
+    }
+    if(!isIdentifierFound || isNaN(parseInt(name))) continue;
+
+    let isXRegionFound = false;
+    for(const xRef in map){
+      if(Math.abs(parseInt(token[6]) - parseInt(xRef)) < 10){
+        map[parseInt(xRef)]?.push({
+          x0: token[6],
+          y0: token[7],
+          name: name,
+        });
+        isXRegionFound = true;
+        break;
+      }
+    }
+    if(!isXRegionFound){
+      map[parseInt(token[6])] = [{
+        x0: token[6],
+        y0: token[7],
+        name: name,
+      }];
+    }
+  }
+
+  console.log(map);
+
+  let avg = 0;
+  let count = 0;
+  const history : any[] = [];
+  for(const xRef in map){
+    const len = map[xRef]!.length
+    if(history.includes(len)) continue;
+    avg += len;
+    history.push(len);
+    count++;
+  }
+  avg /= count;
+
+  let res : any[] = [];
+  for(const xRef in map){
+    if(map[xRef]!.length > avg){
+      res = res.concat(map[xRef]);
+    }
+  }
+
+  return res;
+}
+
+export const GetQuestionData = async (fileId: string, pageNumber: number) => {
+  const databaseRet = await getQuestionsByPageNumberAndFileId(pageNumber, fileId);
+  return databaseRet;
 }
 
 export const GetFileFromBucket = async (file: string) => {

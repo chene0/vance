@@ -112,6 +112,7 @@ export const questions = pgTable(
     id: text('id').primaryKey(),
     fileId: text('fileId').notNull().references(() => files.id, { onDelete: 'cascade' }),
     name: text('name').notNull(),
+    color: text('color').notNull(),
     pageNumber: integer('pageNumber').notNull(),
     leftBound: integer('leftBound').notNull(),
     topBound: integer('topBound').notNull(),
@@ -123,3 +124,5 @@ export type InsertUser = typeof users.$inferInsert;
 export type SelectUser = typeof users.$inferSelect;
 
 export type InsertFile = typeof files.$inferInsert;
+
+export type InsertQuestion = typeof questions.$inferInsert;
