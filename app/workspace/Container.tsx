@@ -1,6 +1,6 @@
 'use client'
 
-import { Button, Modal, TextInput, FileInput } from "flowbite-react";
+import { Button, Modal, TextInput, FileInput, Pagination } from "flowbite-react";
 import { redirect } from 'next/navigation'
 import Sidebar from './Sidebar'
 import { signOut } from './workspaceActions'
@@ -56,7 +56,7 @@ export function Container({ user }: { user: any }) {
     const selectedFile = useAppSelector(selectWorkspace);
     const dispatch = useAppDispatch()
 
-    const [numPages, setNumPages] = useState<number>();
+    const [numPages, setNumPages] = useState<number>(0);
     const [pageNumber, setPageNumber] = useState<number>(1);
     const [currentFiles, setCurrentFiles] = useState(files);
 
@@ -65,7 +65,7 @@ export function Container({ user }: { user: any }) {
     async function onDocumentLoadSuccess({ numPages }: { numPages: number }): Promise<void> {
         setNumPages(numPages);
         const currentQuestions = await GetQuestionData(selectedFile.raw, pageNumber - 1);
-        setQuestionBoxRender(RenderQuestionBoxes(currentQuestions));
+        setQuestionBoxRender(RenderQuestionBoxes(await currentQuestions));
     }
 
     return (
@@ -100,9 +100,18 @@ export function Container({ user }: { user: any }) {
                         <Document file={selectedFile.entities[selectedFile.entities.length - 1]} onLoadSuccess={onDocumentLoadSuccess} className="w-full h-full">
                             <Page pageNumber={pageNumber} width={816} />
                         </Document>
-                        <p>
-                            Page {pageNumber} of {numPages}
-                        </p>
+                        {numPages > 0
+                            ? <Pagination currentPage={pageNumber} totalPages={numPages!}
+                                onPageChange={
+                                    async (page: number) => {
+                                        setPageNumber(page);
+                                        console.log("🚀 ~ page:", page)
+                                        const currentQuestions = await GetQuestionData(selectedFile.raw, page - 1);
+                                        // console.log("🚀 ~ currentQuestions:", await currentQuestions)
+                                        setQuestionBoxRender(RenderQuestionBoxes(await currentQuestions));
+                                    }
+                                } />
+                            : <div></div>}
                     </div>
                 </div>
 
