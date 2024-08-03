@@ -1,5 +1,5 @@
-SELECT "content"
-FROM "user";
+-- SELECT "content"
+-- FROM "user";
 -- UPDATE "user"
 -- SET "content" = '{
 --       "Physics": {
