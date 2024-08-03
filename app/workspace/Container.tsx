@@ -69,7 +69,7 @@ export function Container({ user }: { user: any }) {
     }
 
     return (
-        <div>
+        <div className="bg-white min-h-screen">
             <div className="flex flex-row">
                 {/* SIDEBAR */}
                 <div className="basis-1/4 flex flex-col">
@@ -95,11 +95,17 @@ export function Container({ user }: { user: any }) {
 
                 {/* DOCUMENT DISPLAY */}
                 <div className="flex flex-col basis-1/2">
-                    <div className="flex-grow flex relative justify-center items-center">
+                    <div className="flex-grow flow-col flex relative justify-center items-center">
                         {questionBoxRender}
-                        <Document file={selectedFile.entities[selectedFile.entities.length - 1]} onLoadSuccess={onDocumentLoadSuccess} className="w-full h-full">
-                            <Page pageNumber={pageNumber} width={816} />
+                        <Document file={selectedFile.entities[selectedFile.entities.length - 1]} onLoadSuccess={onDocumentLoadSuccess} className="w-full">
+                            <Page pageNumber={pageNumber} width={816} renderAnnotationLayer={false} renderTextLayer={false} />
                         </Document>
+                    </div>
+                </div>
+
+                {/* CONTROL PANEL */}
+                <div className="basis-1/4">
+                    <div className="sticky top-0">
                         {numPages > 0
                             ? <Pagination currentPage={pageNumber} totalPages={numPages!}
                                 onPageChange={
@@ -113,11 +119,6 @@ export function Container({ user }: { user: any }) {
                                 } />
                             : <div></div>}
                     </div>
-                </div>
-
-                {/* CONTROL PANEL */}
-                <div className="basis-1/4">
-
                 </div>
             </div>
 
