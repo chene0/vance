@@ -127,3 +127,4 @@ export type SelectUser = typeof users.$inferSelect;
 export type InsertFile = typeof files.$inferInsert;
 
 export type InsertQuestion = typeof questions.$inferInsert;
+export type SelectQuestion = typeof questions.$inferSelect;
