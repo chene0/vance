@@ -9,5 +9,5 @@
 --         "Energetics Review": "file1aVQUV8V+x49+yRD2s3YHrVRDetODDDHlXLMr8XfrVir.pdf"
 --       }
 --     }'::json
-SELECT "name"
-FROM "question"
+TRUNCATE question;
+DELETE FROM question;

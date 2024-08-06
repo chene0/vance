@@ -7,7 +7,7 @@ import { signOut } from './workspaceActions'
 // import React from 'react'
 import { use, useEffect, useRef, useState } from 'react'
 
-import { useAppSelector, useAppDispatch } from '../hooks'
+import { useAppSelector, useAppDispatch, useMousePosition } from '../hooks'
 import { setSelectedFile, selectWorkspace } from './workspaceSlice'
 import { Provider } from 'react-redux'
 import { store } from '../store'
@@ -65,6 +65,7 @@ export function Container({ user }: { user: any }) {
     const [questionBoxRender, setQuestionBoxRender] = useState<any[]>([]);
     const [questionQueueRender, setQuestionQueueRender] = useState<any[]>([]);
     const [selectedQuestion, setSelectedQuestion] = useState<any>();
+    const [isManuallyAddingQuestion, setIsManuallyAddingQuestion] = useState(false);
 
     async function onDocumentLoadSuccess({ numPages }: { numPages: number }): Promise<void> {
         setNumPages(numPages);
@@ -75,20 +76,20 @@ export function Container({ user }: { user: any }) {
     }
 
     const RenderQuestionBoxes = (questions: any[]) => {
+        if (questions.length === 0) return [];
         console.log("🚀 ~ RenderQuestionBoxes ~ questions:", questions)
 
         let res: any[] = [];
-        for (let i = 0; i < questions.length - 1; i++) {
+        for (let i = 0; i < questions.length; i++) {
             const question = questions[i];
-            const next = questions[i + 1];
-            const width = 816 - question.leftBound;
-            const height = next.topBound - question.topBound;
+            const width = Math.abs(question.rightBound - question.leftBound);
+            const height = Math.abs(question.bottomBound - question.topBound);
             res.push(
                 <div
                     onClick={async () => {
-                        const id = question.id;
-                        const databaseRet = (await GetQuestionDataById(id))[0];
-                        setSelectedQuestion(databaseRet);
+                        // const id = question.id;
+                        // const databaseRet = (await GetQuestionDataById(id))[0];
+                        setSelectedQuestion(question);
                     }}
                     className={"absolute box-border opacity-20 z-40"}
                     style={
@@ -103,28 +104,6 @@ export function Container({ user }: { user: any }) {
                     key={question.id}></div>
             )
         }
-        const lastQuestion = questions[questions.length - 1];
-        const lastWidth = 816 - lastQuestion.leftBound;
-        const lastHeight = 1056 - lastQuestion.topBound;
-        res.push(
-            <div
-                onClick={async () => {
-                    const id = lastQuestion.id;
-                    const databaseRet = (await GetQuestionDataById(id))[0];
-                    setSelectedQuestion(databaseRet);
-                }}
-                className={"absolute box-border opacity-20 z-40"}
-                style={
-                    {
-                        backgroundColor: lastQuestion.color,
-                        left: `${lastQuestion.leftBound}px`,
-                        top: `${lastQuestion.topBound}px`,
-                        width: `${lastWidth}px`,
-                        height: `${lastHeight}px`
-                    }
-                }
-                key={lastQuestion.id}></div>
-        )
         console.log("🚀 ~ RenderQuestionBoxes ~ res:", res)
         return res;
     }
@@ -255,6 +234,14 @@ export function Container({ user }: { user: any }) {
                                             }}>Delete question</Button>
                                     </div>
                                 </div>}
+
+                            {/* MANUALLY ADD QUESTION */}
+                            {isManuallyAddingQuestion
+                                ?
+                                <div>
+                                    <Button onClick={() => setIsManuallyAddingQuestion(false)}>Cancel</Button>
+                                </div>
+                                : <Button onClick={() => setIsManuallyAddingQuestion(true)}>Manually add question</Button>}
                         </div>
                     </div>
                 </div>

@@ -117,6 +117,8 @@ export const questions = pgTable(
     pageNumber: integer('pageNumber').notNull(),
     leftBound: integer('leftBound').notNull(),
     topBound: integer('topBound').notNull(),
+    rightBound: integer('rightBound').notNull(),
+    bottomBound: integer('bottomBound').notNull(),
     priorityRating: integer('priorityRating').notNull(),
   }
 )
