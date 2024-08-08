@@ -5,7 +5,7 @@ import { redirect } from 'next/navigation'
 import Sidebar from './Sidebar'
 import { signOut } from './workspaceActions'
 // import React from 'react'
-import { use, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { useAppSelector, useAppDispatch, useMousePosition } from '../hooks'
 import { setSelectedFile, selectWorkspace } from './workspaceSlice'
@@ -21,8 +21,10 @@ import { getModalSetDeletionState, setModalSetDeletionState } from "./modalSetDe
 
 import { fromBase64, fromBuffer } from "pdf2pic";
 import { PDFDocument } from "pdf-lib"
-import Tesseract, { createWorker } from 'tesseract.js';
 import { getModalQuestionDeletionState, setModalQuestionDeletionState } from "./modalQuestionDeletionSlice";
+import { set } from "zod";
+
+import { motion, useAnimate, useMotionValue } from "framer-motion"
 
 // pdfjs.GlobalWorkerOptions.workerSrc = new URL(
 //     'pdfjs-dist/legacy/build/pdf.worker.min.mjs',
@@ -65,7 +67,17 @@ export function Container({ user }: { user: any }) {
     const [questionBoxRender, setQuestionBoxRender] = useState<any[]>([]);
     const [questionQueueRender, setQuestionQueueRender] = useState<any[]>([]);
     const [selectedQuestion, setSelectedQuestion] = useState<any>();
-    const [isManuallyAddingQuestion, setIsManuallyAddingQuestion] = useState(false);
+
+    const [isManuallyAddingQuestion, setIsManuallyAddingQuestion] = useState<boolean>(false);
+    const isManuallyAddingQuestionRef = useRef(isManuallyAddingQuestion);
+    const [isDragging, setIsDragging] = useState(false);
+    const leftBound = useRef<number>(0);
+    const topBound = useRef<number>(0);
+    const rightBound = useRef<number>(0);
+    const bottomBound = useRef<number>(0);
+    const addingWidth = useMotionValue(0);
+    const addingHeight = useMotionValue(0);
+    const [addingScope, addingAnimate] = useAnimate();
 
     async function onDocumentLoadSuccess({ numPages }: { numPages: number }): Promise<void> {
         setNumPages(numPages);
@@ -74,6 +86,43 @@ export function Container({ user }: { user: any }) {
         const allQuestions = await GetAllQuestionData(selectedFile.raw);
         setQuestionQueueRender(RenderQuestionQueue(await allQuestions));
     }
+
+    useEffect(() => {
+        isManuallyAddingQuestionRef.current = isManuallyAddingQuestion;
+    }, [isManuallyAddingQuestion]);
+    const handleQuestionBoxClick = useCallback((question: any) => {
+        if (!isManuallyAddingQuestionRef.current) {
+            setSelectedQuestion(question);
+        }
+    }, [setSelectedQuestion]);
+
+    const handleDocMouseDown = (event: any) => {
+        if (!isManuallyAddingQuestionRef.current) return;
+        setIsDragging(true);
+        const relativeX = event.nativeEvent.offsetX;
+        const relativeY = event.nativeEvent.offsetY;
+        leftBound.current = relativeX;
+        topBound.current = relativeY;
+        addingWidth.set(0);
+        addingHeight.set(0);
+        console.log('Mouse down at:', leftBound.current, topBound.current);
+    }
+    const handleDocMouseMove = (event: any) => {
+        if (!isDragging) return;
+        const relativeX = event.nativeEvent.offsetX;
+        const relativeY = event.nativeEvent.offsetY;
+        rightBound.current = relativeX;
+        bottomBound.current = relativeY;
+        addingWidth.set(Math.abs(rightBound.current - leftBound.current));
+        addingHeight.set(Math.abs(bottomBound.current - topBound.current));
+        addingAnimate(addingScope.current, { width: addingWidth.get(), height: addingHeight.get() });
+        console.log('Mouse move at:', rightBound.current, bottomBound.current);
+    };
+    const handleDocMouseUp = () => {
+        if (!isDragging) return;
+        setIsDragging(false);
+        console.log('Mouse up');
+    };
 
     const RenderQuestionBoxes = (questions: any[]) => {
         if (questions.length === 0) return [];
@@ -86,11 +135,7 @@ export function Container({ user }: { user: any }) {
             const height = Math.abs(question.bottomBound - question.topBound);
             res.push(
                 <div
-                    onClick={async () => {
-                        // const id = question.id;
-                        // const databaseRet = (await GetQuestionDataById(id))[0];
-                        setSelectedQuestion(question);
-                    }}
+                    onClick={() => handleQuestionBoxClick(question)}
                     className={"absolute box-border opacity-20 z-40"}
                     style={
                         {
@@ -153,10 +198,12 @@ export function Container({ user }: { user: any }) {
                             setModalSetProcessState(true);
                         }
                     }}>
-                        <Button type="submit">Automatically detect questions</Button>
+                        <Button type="submit">
+                            Automatically detect questions
+                        </Button>
                     </form>
-                </div>
 
+                </div>
                 {/* DOCUMENT DISPLAY */}
                 <div className="flex flex-col basis-1/2 justify-items-center">
                     {/* Question queue */}
@@ -168,8 +215,26 @@ export function Container({ user }: { user: any }) {
 
                     {/* Document render */}
                     <div className="flex-grow flow-col flex relative justify-center items-center">
+                        {isManuallyAddingQuestionRef.current && isDragging ?
+                            <motion.div className="absolute box-border z-50" ref={addingScope}
+                                style={
+                                    {
+                                        backgroundColor: "red",
+                                        left: `${leftBound.current}px`,
+                                        top: `${topBound.current}px`,
+                                        // width: addingWidth.get(),
+                                        // height: addingHeight.get()
+                                    }
+                                }>
+                            </motion.div>
+                            : <div></div>}
                         {questionBoxRender}
-                        <Document file={selectedFile.entities[selectedFile.entities.length - 1]} onLoadSuccess={onDocumentLoadSuccess} className="w-full">
+                        <Document
+                            onMouseDown={handleDocMouseDown}
+                            onMouseMove={handleDocMouseMove}
+                            onMouseUp={handleDocMouseUp}
+                            file={selectedFile.entities[selectedFile.entities.length - 1]}
+                            onLoadSuccess={onDocumentLoadSuccess} className="w-full">
                             <Page pageNumber={pageNumber} width={816} renderAnnotationLayer={false} renderTextLayer={false} />
                         </Document>
                     </div>
@@ -195,45 +260,49 @@ export function Container({ user }: { user: any }) {
 
                         {/* QUESTION CONTROL */}
                         <div className="mt-4 h-full">
-                            {!selectedQuestion
-                                ? <p className="text-slate-900">Select a question to get started</p>
-                                :
-                                <div className="flex flex-col flex-wrap h-full">
-                                    <h1 className="text-slate-900">{`Question ${selectedQuestion.name}`}</h1>
-                                    <Button.Group>
-                                        <Button onClick={async () => {
-                                            AdjustQuestionPriorityRating(selectedQuestion, -2);
-                                            setSelectedQuestion(undefined);
-                                            const allQuestions = await GetAllQuestionData(selectedFile.raw);
-                                            setQuestionQueueRender(RenderQuestionQueue(await allQuestions));
-                                        }}>Clueless</Button>
-                                        <Button onClick={async () => {
-                                            AdjustQuestionPriorityRating(selectedQuestion, -1);
-                                            setSelectedQuestion(undefined);
-                                            const allQuestions = await GetAllQuestionData(selectedFile.raw);
-                                            setQuestionQueueRender(RenderQuestionQueue(await allQuestions));
-                                        }}>Trivial Error</Button>
-                                        <Button onClick={async () => {
-                                            AdjustQuestionPriorityRating(selectedQuestion, 1);
-                                            setSelectedQuestion(undefined);
-                                            const allQuestions = await GetAllQuestionData(selectedFile.raw);
-                                            setQuestionQueueRender(RenderQuestionQueue(await allQuestions));
-                                        }}>Manageable</Button>
-                                        <Button onClick={async () => {
-                                            AdjustQuestionPriorityRating(selectedQuestion, 2);
-                                            setSelectedQuestion(undefined);
-                                            const allQuestions = await GetAllQuestionData(selectedFile.raw);
-                                            setQuestionQueueRender(RenderQuestionQueue(await allQuestions));
-                                        }}>Easy</Button>
-                                    </Button.Group>
+                            {!isManuallyAddingQuestion ?
+                                <div>
+                                    {!selectedQuestion
+                                        ? <p className="text-slate-900">Select a question to get started</p>
+                                        :
+                                        <div className="flex flex-col flex-wrap h-full">
+                                            <h1 className="text-slate-900">{`Question ${selectedQuestion.name}`}</h1>
+                                            <Button.Group>
+                                                <Button onClick={async () => {
+                                                    AdjustQuestionPriorityRating(selectedQuestion, -2);
+                                                    setSelectedQuestion(undefined);
+                                                    const allQuestions = await GetAllQuestionData(selectedFile.raw);
+                                                    setQuestionQueueRender(RenderQuestionQueue(await allQuestions));
+                                                }}>Clueless</Button>
+                                                <Button onClick={async () => {
+                                                    AdjustQuestionPriorityRating(selectedQuestion, -1);
+                                                    setSelectedQuestion(undefined);
+                                                    const allQuestions = await GetAllQuestionData(selectedFile.raw);
+                                                    setQuestionQueueRender(RenderQuestionQueue(await allQuestions));
+                                                }}>Trivial Error</Button>
+                                                <Button onClick={async () => {
+                                                    AdjustQuestionPriorityRating(selectedQuestion, 1);
+                                                    setSelectedQuestion(undefined);
+                                                    const allQuestions = await GetAllQuestionData(selectedFile.raw);
+                                                    setQuestionQueueRender(RenderQuestionQueue(await allQuestions));
+                                                }}>Manageable</Button>
+                                                <Button onClick={async () => {
+                                                    AdjustQuestionPriorityRating(selectedQuestion, 2);
+                                                    setSelectedQuestion(undefined);
+                                                    const allQuestions = await GetAllQuestionData(selectedFile.raw);
+                                                    setQuestionQueueRender(RenderQuestionQueue(await allQuestions));
+                                                }}>Easy</Button>
+                                            </Button.Group>
 
-                                    <div className="bottom-1 mt-32">
-                                        <Button color="warning"
-                                            onClick={() => {
-                                                dispatch(setModalQuestionDeletionState(selectedQuestion.id));
-                                            }}>Delete question</Button>
-                                    </div>
-                                </div>}
+                                            <div className="bottom-1 mt-32">
+                                                <Button color="warning"
+                                                    onClick={() => {
+                                                        dispatch(setModalQuestionDeletionState(selectedQuestion.id));
+                                                    }}>Delete question</Button>
+                                            </div>
+                                        </div>}
+                                </div>
+                                : <div></div>}
 
                             {/* MANUALLY ADD QUESTION */}
                             {isManuallyAddingQuestion
