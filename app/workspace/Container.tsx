@@ -71,13 +71,16 @@ export function Container({ user }: { user: any }) {
     const [isManuallyAddingQuestion, setIsManuallyAddingQuestion] = useState<boolean>(false);
     const isManuallyAddingQuestionRef = useRef(isManuallyAddingQuestion);
     const [isDragging, setIsDragging] = useState(false);
-    const leftBound = useRef<number>(0);
-    const topBound = useRef<number>(0);
+    // const leftBound = useRef<number>(0);
+    // const topBound = useRef<number>(0);
+    const [leftBound, setLeftBound] = useState<number>(0);
+    const [topBound, setTopBound] = useState<number>(0);
+    const leftBoundSave = useRef<number>(0);
+    const topBoundSave = useRef<number>(0);
     const rightBound = useRef<number>(0);
     const bottomBound = useRef<number>(0);
-    const addingWidth = useMotionValue(0);
-    const addingHeight = useMotionValue(0);
-    const [addingScope, addingAnimate] = useAnimate();
+    const [addingWidth, setAddingWidth] = useState(0);
+    const [addingHeight, setAddingHeight] = useState(0);
 
     async function onDocumentLoadSuccess({ numPages }: { numPages: number }): Promise<void> {
         setNumPages(numPages);
@@ -101,11 +104,15 @@ export function Container({ user }: { user: any }) {
         setIsDragging(true);
         const relativeX = event.nativeEvent.offsetX;
         const relativeY = event.nativeEvent.offsetY;
-        leftBound.current = relativeX;
-        topBound.current = relativeY;
-        addingWidth.set(0);
-        addingHeight.set(0);
-        console.log('Mouse down at:', leftBound.current, topBound.current);
+        // leftBound.current = relativeX;
+        // topBound.current = relativeY;
+        setLeftBound(relativeX);
+        setTopBound(relativeY);
+        leftBoundSave.current = relativeX;
+        topBoundSave.current = relativeY;
+        setAddingWidth(0);
+        setAddingHeight(0);
+        console.log('Mouse down at:', leftBound, topBound);
     }
     const handleDocMouseMove = (event: any) => {
         if (!isDragging) return;
@@ -113,9 +120,25 @@ export function Container({ user }: { user: any }) {
         const relativeY = event.nativeEvent.offsetY;
         rightBound.current = relativeX;
         bottomBound.current = relativeY;
-        addingWidth.set(Math.abs(rightBound.current - leftBound.current));
-        addingHeight.set(Math.abs(bottomBound.current - topBound.current));
-        addingAnimate(addingScope.current, { width: addingWidth.get(), height: addingHeight.get() });
+
+        try {
+            setAddingWidth(Math.abs(rightBound.current - leftBoundSave.current));
+            setAddingHeight(Math.abs(bottomBound.current - topBoundSave.current));
+        } catch (e) {
+            console.error(e)
+        }
+
+        if (rightBound.current < leftBoundSave.current) {
+            setLeftBound(rightBound.current);
+        } else {
+            setLeftBound(leftBoundSave.current);
+        }
+
+        if (bottomBound.current < topBoundSave.current) {
+            setTopBound(bottomBound.current);
+        } else {
+            setTopBound(topBoundSave.current);
+        }
         console.log('Mouse move at:', rightBound.current, bottomBound.current);
     };
     const handleDocMouseUp = () => {
@@ -136,6 +159,7 @@ export function Container({ user }: { user: any }) {
             res.push(
                 <div
                     onClick={() => handleQuestionBoxClick(question)}
+                    onPointerOver={() => console.log(isDragging)}
                     className={"absolute box-border opacity-20 z-40"}
                     style={
                         {
@@ -143,7 +167,7 @@ export function Container({ user }: { user: any }) {
                             left: `${question.leftBound}px`,
                             top: `${question.topBound}px`,
                             width: `${width}px`,
-                            height: `${height}px`
+                            height: `${height}px`,
                         }
                     }
                     key={question.id}></div>
@@ -214,16 +238,18 @@ export function Container({ user }: { user: any }) {
                     </div>
 
                     {/* Document render */}
-                    <div className="flex-grow flow-col flex relative justify-center items-center">
+                    <div className="flex-grow flow-col flex relative justify-center items-center z-50">
                         {isManuallyAddingQuestionRef.current && isDragging ?
-                            <motion.div className="absolute box-border z-50" ref={addingScope}
+                            <motion.div className="absolute box-border z-40"
+                                // ref={addingScope}
                                 style={
                                     {
                                         backgroundColor: "red",
-                                        left: `${leftBound.current}px`,
-                                        top: `${topBound.current}px`,
-                                        // width: addingWidth.get(),
-                                        // height: addingHeight.get()
+                                        left: `${leftBound}px`,
+                                        top: `${topBound}px`,
+                                        width: addingWidth,
+                                        height: addingHeight,
+                                        pointerEvents: "none"
                                     }
                                 }>
                             </motion.div>
