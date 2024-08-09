@@ -22,9 +22,7 @@ import { getModalSetDeletionState, setModalSetDeletionState } from "./modalSetDe
 import { fromBase64, fromBuffer } from "pdf2pic";
 import { PDFDocument } from "pdf-lib"
 import { getModalQuestionDeletionState, setModalQuestionDeletionState } from "./modalQuestionDeletionSlice";
-import { set } from "zod";
-
-import { motion, useAnimate, useMotionValue } from "framer-motion"
+const randomColor = require('randomcolor');
 
 // pdfjs.GlobalWorkerOptions.workerSrc = new URL(
 //     'pdfjs-dist/legacy/build/pdf.worker.min.mjs',
@@ -81,6 +79,7 @@ export function Container({ user }: { user: any }) {
     const bottomBound = useRef<number>(0);
     const [addingWidth, setAddingWidth] = useState(0);
     const [addingHeight, setAddingHeight] = useState(0);
+    const [addingColor, setAddingColor] = useState("red");
 
     async function onDocumentLoadSuccess({ numPages }: { numPages: number }): Promise<void> {
         setNumPages(numPages);
@@ -102,6 +101,7 @@ export function Container({ user }: { user: any }) {
     const handleDocMouseDown = (event: any) => {
         if (!isManuallyAddingQuestionRef.current) return;
         setIsDragging(true);
+        setAddingColor(randomColor());
         const relativeX = event.nativeEvent.offsetX;
         const relativeY = event.nativeEvent.offsetY;
         // leftBound.current = relativeX;
@@ -159,7 +159,6 @@ export function Container({ user }: { user: any }) {
             res.push(
                 <div
                     onClick={() => handleQuestionBoxClick(question)}
-                    onPointerOver={() => console.log(isDragging)}
                     className={"absolute box-border opacity-20 z-40"}
                     style={
                         {
@@ -239,12 +238,13 @@ export function Container({ user }: { user: any }) {
 
                     {/* Document render */}
                     <div className="flex-grow flow-col flex relative justify-center items-center z-50">
-                        {isManuallyAddingQuestionRef.current && isDragging ?
-                            <motion.div className="absolute box-border z-40"
+                        {isManuallyAddingQuestionRef.current ?
+                            <div className="absolute box-border z-40"
                                 // ref={addingScope}
                                 style={
                                     {
-                                        backgroundColor: "red",
+                                        backgroundColor: addingColor,
+                                        opacity: 0.2,
                                         left: `${leftBound}px`,
                                         top: `${topBound}px`,
                                         width: addingWidth,
@@ -252,7 +252,7 @@ export function Container({ user }: { user: any }) {
                                         pointerEvents: "none"
                                     }
                                 }>
-                            </motion.div>
+                            </div>
                             : <div></div>}
                         {questionBoxRender}
                         <Document
