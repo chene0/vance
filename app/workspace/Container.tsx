@@ -1,7 +1,6 @@
 'use client'
 
-import { Button, Modal, TextInput, FileInput, Pagination } from "flowbite-react";
-import { redirect } from 'next/navigation'
+import { Button, Modal, TextInput, FileInput, Pagination, FloatingLabel } from "flowbite-react";
 import Sidebar from './Sidebar'
 import { signOut } from './workspaceActions'
 // import React from 'react'
@@ -19,10 +18,12 @@ import { AddFolder, AdjustQuestionPriorityRating, CreateSet, DeleteFolder, Delet
 import { getModalFolderDeletionState, setModalFolderDeletionState } from "./modalFolderDeletionSlice";
 import { getModalSetDeletionState, setModalSetDeletionState } from "./modalSetDeletionSlice";
 
-import { fromBase64, fromBuffer } from "pdf2pic";
 import { PDFDocument } from "pdf-lib"
 import { getModalQuestionDeletionState, setModalQuestionDeletionState } from "./modalQuestionDeletionSlice";
 const randomColor = require('randomcolor');
+import { HexColorPicker } from "react-colorful";
+
+import { motion, useAnimate, useMotionValue } from 'framer-motion';
 
 // pdfjs.GlobalWorkerOptions.workerSrc = new URL(
 //     'pdfjs-dist/legacy/build/pdf.worker.min.mjs',
@@ -49,6 +50,7 @@ export function Container({ user }: { user: any }) {
 
     const files = user[0]?.content;
 
+    // Variables for modals
     const modalSetState = useAppSelector(getModalSetState);
     const [modalSetProcessState, setModalSetProcessState] = useState(false);
     const modalSetDeletionState = useAppSelector(getModalSetDeletionState);
@@ -58,29 +60,32 @@ export function Container({ user }: { user: any }) {
     const selectedFile = useAppSelector(selectWorkspace);
     const dispatch = useAppDispatch()
 
+    // Variables for document display
     const [numPages, setNumPages] = useState<number>(0);
     const [pageNumber, setPageNumber] = useState<number>(1);
     const [currentFiles, setCurrentFiles] = useState(files);
 
+    // Variables for question display
     const [questionBoxRender, setQuestionBoxRender] = useState<any[]>([]);
     const [questionQueueRender, setQuestionQueueRender] = useState<any[]>([]);
     const [selectedQuestion, setSelectedQuestion] = useState<any>();
 
+    // Variables for manual question addition
     const [isManuallyAddingQuestion, setIsManuallyAddingQuestion] = useState<boolean>(false);
     const isManuallyAddingQuestionRef = useRef(isManuallyAddingQuestion);
     const [isDragging, setIsDragging] = useState(false);
-    // const leftBound = useRef<number>(0);
-    // const topBound = useRef<number>(0);
-    const [leftBound, setLeftBound] = useState<number>(0);
-    const [topBound, setTopBound] = useState<number>(0);
+    const leftBound = useMotionValue(0);
+    const topBound = useMotionValue(0);
     const leftBoundSave = useRef<number>(0);
     const topBoundSave = useRef<number>(0);
     const rightBound = useRef<number>(0);
     const bottomBound = useRef<number>(0);
-    const [addingWidth, setAddingWidth] = useState(0);
-    const [addingHeight, setAddingHeight] = useState(0);
+    const addingWidth = useMotionValue(0);
+    const addingHeight = useMotionValue(0);
     const [addingColor, setAddingColor] = useState("red");
+    const [addingScope, addingAnimate] = useAnimate();
 
+    // Function runs upon document load to set the number of pages and render the question boxes
     async function onDocumentLoadSuccess({ numPages }: { numPages: number }): Promise<void> {
         setNumPages(numPages);
         const currentQuestions = await GetQuestionData(selectedFile.raw, pageNumber - 1);
@@ -90,55 +95,72 @@ export function Container({ user }: { user: any }) {
     }
 
     useEffect(() => {
-        isManuallyAddingQuestionRef.current = isManuallyAddingQuestion;
-    }, [isManuallyAddingQuestion]);
+        console.log("EFFECT CALLED")
+        if (isManuallyAddingQuestionRef.current !== isManuallyAddingQuestion) {
+            isManuallyAddingQuestionRef.current = isManuallyAddingQuestion;
+        }
+    }, [isManuallyAddingQuestion, isManuallyAddingQuestionRef]);
     const handleQuestionBoxClick = useCallback((question: any) => {
         if (!isManuallyAddingQuestionRef.current) {
             setSelectedQuestion(question);
         }
-    }, [setSelectedQuestion]);
+    }, [setSelectedQuestion, isManuallyAddingQuestionRef]);
 
+    // Event handlers for manual question addition
     const handleDocMouseDown = (event: any) => {
         if (!isManuallyAddingQuestionRef.current) return;
         setIsDragging(true);
         setAddingColor(randomColor());
         const relativeX = event.nativeEvent.offsetX;
         const relativeY = event.nativeEvent.offsetY;
-        // leftBound.current = relativeX;
-        // topBound.current = relativeY;
-        setLeftBound(relativeX);
-        setTopBound(relativeY);
+        leftBound.set(relativeX);
+        topBound.set(relativeY);
         leftBoundSave.current = relativeX;
         topBoundSave.current = relativeY;
-        setAddingWidth(0);
-        setAddingHeight(0);
+        addingWidth.set(0);
+        addingHeight.set(0);
         console.log('Mouse down at:', leftBound, topBound);
     }
     const handleDocMouseMove = (event: any) => {
         if (!isDragging) return;
         const relativeX = event.nativeEvent.offsetX;
         const relativeY = event.nativeEvent.offsetY;
+
+        if (relativeX === rightBound.current && relativeY === bottomBound.current) return;
+
         rightBound.current = relativeX;
         bottomBound.current = relativeY;
 
         try {
-            setAddingWidth(Math.abs(rightBound.current - leftBoundSave.current));
-            setAddingHeight(Math.abs(bottomBound.current - topBoundSave.current));
+            addingWidth.set(Math.abs(rightBound.current - leftBoundSave.current));
+            addingHeight.set(Math.abs(bottomBound.current - topBoundSave.current));
         } catch (e) {
             console.error(e)
         }
 
+        // Below code is to prevent the box from being drawn in the opposite direction if the user
+        // drags the mouse to the 1st, 2nd, or 3rd quadrant
         if (rightBound.current < leftBoundSave.current) {
-            setLeftBound(rightBound.current);
-        } else {
-            setLeftBound(leftBoundSave.current);
+            leftBound.set(rightBound.current);
+        } else if (leftBoundSave.current !== leftBound.get()) {
+            leftBound.set(leftBoundSave.current);
+        }
+        if (bottomBound.current < topBoundSave.current) {
+            topBound.set(bottomBound.current);
+        } else if (topBoundSave.current !== topBound.get()) {
+            topBound.set(topBoundSave.current);
         }
 
-        if (bottomBound.current < topBoundSave.current) {
-            setTopBound(bottomBound.current);
-        } else {
-            setTopBound(topBoundSave.current);
-        }
+        // Animate the box creation div
+        // NOTE: TYPE TWEEN IS NECESSARY TO AVOID LATENCY EFFECT
+        addingAnimate(addingScope.current, {
+            left: leftBound.get(),
+            top: topBound.get(),
+            width: addingWidth.get(),
+            height: addingHeight.get(),
+        },
+            { type: 'tween', duration: 0 });
+
         console.log('Mouse move at:', rightBound.current, bottomBound.current);
     };
     const handleDocMouseUp = () => {
@@ -239,20 +261,17 @@ export function Container({ user }: { user: any }) {
                     {/* Document render */}
                     <div className="flex-grow flow-col flex relative justify-center items-center z-50">
                         {isManuallyAddingQuestionRef.current ?
-                            <div className="absolute box-border z-40"
-                                // ref={addingScope}
+                            <motion.div className="absolute box-border z-40"
+                                ref={addingScope}
+                                initial={{ left: leftBound.get(), top: topBound.get(), width: 0, height: 0 }}
                                 style={
                                     {
                                         backgroundColor: addingColor,
-                                        opacity: 0.2,
-                                        left: `${leftBound}px`,
-                                        top: `${topBound}px`,
-                                        width: addingWidth,
-                                        height: addingHeight,
+                                        opacity: 0.4,
                                         pointerEvents: "none"
                                     }
                                 }>
-                            </div>
+                            </motion.div>
                             : <div></div>}
                         {questionBoxRender}
                         <Document
@@ -334,6 +353,24 @@ export function Container({ user }: { user: any }) {
                             {isManuallyAddingQuestion
                                 ?
                                 <div>
+                                    <form onSubmit={(event) => {
+                                        event.preventDefault();
+                                        const formData = new FormData(event.target as HTMLFormElement);
+
+                                        const inputData = {
+                                            name: formData.get("file-name") as string,
+                                            leftBound: Math.min(leftBound.get(), leftBoundSave.current),
+                                            topBound: Math.min(topBound.get(), topBoundSave.current),
+                                            rightBound: Math.max(rightBound.current, leftBoundSave.current),
+                                            bottomBound: Math.max(bottomBound.current, topBoundSave.current),
+                                            color: addingColor,
+                                        }
+                                        console.log("🚀 ~ inputData:", inputData)
+                                    }}>
+                                        <FloatingLabel variant="outlined" label="File Name/Index" name="file-name" />
+                                        <HexColorPicker color={addingColor} onChange={setAddingColor} />;
+                                        <Button type="submit">Save</Button>
+                                    </form>
                                     <Button onClick={() => setIsManuallyAddingQuestion(false)}>Cancel</Button>
                                 </div>
                                 : <Button onClick={() => setIsManuallyAddingQuestion(true)}>Manually add question</Button>}
