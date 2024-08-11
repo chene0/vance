@@ -3,12 +3,12 @@ import { RootState } from "../store"
 
 export interface ModalQuestionDeletionState {
     open: boolean,
-    question: string,
+    questions: [],
 }
 
 const initialState: ModalQuestionDeletionState = {
     open: false,
-    question: '',
+    questions: [],
 }
 
 export const modalQuestionDeletionSlice = createSlice({
@@ -18,7 +18,7 @@ export const modalQuestionDeletionSlice = createSlice({
         setModalQuestionDeletionState: (state, action: PayloadAction<any>) => {
             const prev = state.open;
             state.open = !prev;
-            state.question = action.payload;
+            state.questions = action.payload;
         }
     }
 })
