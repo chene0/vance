@@ -13,6 +13,7 @@ import fetch from "node-fetch";
 import { PDFDocument } from 'pdf-lib';
 import { is } from 'drizzle-orm';
 import { parse } from 'path';
+import { InsertQuestion } from '@/src/db/schema';
 const randomstring = require('randomstring');
 const randomColor = require('randomcolor');
 
@@ -161,6 +162,13 @@ const ProcessPage = (tsx: string[][]) => {
   }
 
   return res;
+}
+
+export const CreateQuestion = async(inputData: any) => {
+  await createQuestion({
+    ...inputData,
+    id: randomstring.generate(44),
+  });
 }
 
 export const GetQuestionData = async (fileId: string, pageNumber: number) => {
