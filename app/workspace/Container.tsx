@@ -69,6 +69,7 @@ export function Container({ user }: { user: any }) {
     const [questionBoxRender, setQuestionBoxRender] = useState<any[]>([]);
     const [questionQueueRender, setQuestionQueueRender] = useState<any[]>([]);
     const [selectedQuestion, setSelectedQuestion] = useState<any[]>([]);
+    const [renderedSelectQuestion, setRenderedSelectQuestion] = useState<any[]>([]);
 
     // Variables for manual question addition
     const [isManuallyAddingQuestion, setIsManuallyAddingQuestion] = useState<boolean>(false);
@@ -115,6 +116,28 @@ export function Container({ user }: { user: any }) {
             });
         }
     }, [setSelectedQuestion, isManuallyAddingQuestionRef]);
+    useEffect(() => {
+        console.log("EFFECT CALLED");
+
+        const curr: any[] = [];
+        for (let i = 0; i < selectedQuestion.length; i++) {
+            const question = selectedQuestion[i];
+            curr.push(
+                <div className={"absolute box-border opacity-20 z-30"}
+                    style={
+                        {
+                            backgroundColor: 'red',
+                            left: `${question.rightBound}px`,
+                            top: `${question.topBound}px`,
+                            width: '.25rem',
+                            height: `${Math.abs(question.bottomBound - question.topBound)}px`,
+                        }
+                    }></div>
+            )
+        }
+
+        setRenderedSelectQuestion(curr);
+    }, [selectedQuestion])
 
     // Event handlers for manual question addition
     const handleDocMouseDown = (event: any) => {
@@ -204,7 +227,8 @@ export function Container({ user }: { user: any }) {
                             height: `${height}px`,
                         }
                     }
-                    key={question.id}></div>
+                    key={question.id}>
+                </div>
             )
         }
         console.log("🚀 ~ RenderQuestionBoxes ~ res:", res)
@@ -287,6 +311,7 @@ export function Container({ user }: { user: any }) {
                             </motion.div>
                             : <div></div>}
                         {questionBoxRender}
+                        {renderedSelectQuestion}
                         <Document
                             onMouseDown={handleDocMouseDown}
                             onMouseMove={handleDocMouseMove}
