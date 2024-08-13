@@ -120,6 +120,7 @@ export const questions = pgTable(
     rightBound: integer('rightBound').notNull(),
     bottomBound: integer('bottomBound').notNull(),
     priorityRating: integer('priorityRating').notNull(),
+    hasAnswer: boolean('hasAnswer').notNull(),
   }
 )
 

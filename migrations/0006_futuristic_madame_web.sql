@@ -1,0 +1,1 @@
+ALTER TABLE "question" ALTER COLUMN "priorityRating" DROP NOT NULL;

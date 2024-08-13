@@ -254,7 +254,9 @@ export function Container({ user }: { user: any }) {
     const RenderQuestionQueue = (questions: any[]) => {
         let res: any[] = [];
         const maxRenderCount = 10;
-        const sortedQuestionsByPriority = questions.sort((a, b) => a.priorityRating - b.priorityRating);
+        const hasAnsweredQuestions = questions.filter((question) => question.hasAnswer === true);
+        const sortedQuestionsByPriority = hasAnsweredQuestions.sort((a, b) => a.priorityRating - b.priorityRating);
+        console.log("🚀 ~ RenderQuestionQueue ~ sortedQuestionsByPriority:", sortedQuestionsByPriority)
         for (let i = 0; i < Math.min(maxRenderCount, sortedQuestionsByPriority.length); i++) {
             const question = sortedQuestionsByPriority[i];
             res.push(
@@ -370,25 +372,25 @@ export function Container({ user }: { user: any }) {
                                                     <h1 className="text-slate-900">{`Question ${selectedQuestion[0].name}`}</h1>
                                                     <Button.Group>
                                                         <Button onClick={async () => {
-                                                            AdjustQuestionPriorityRating(selectedQuestion[0], -2);
+                                                            await AdjustQuestionPriorityRating(selectedQuestion[0], -2);
                                                             setSelectedQuestion([]);
                                                             const allQuestions = await GetAllQuestionData(selectedFile.raw);
                                                             setQuestionQueueRender(RenderQuestionQueue(await allQuestions));
                                                         }}>Clueless</Button>
                                                         <Button onClick={async () => {
-                                                            AdjustQuestionPriorityRating(selectedQuestion[0], -1);
+                                                            await AdjustQuestionPriorityRating(selectedQuestion[0], -1);
                                                             setSelectedQuestion([]);
                                                             const allQuestions = await GetAllQuestionData(selectedFile.raw);
                                                             setQuestionQueueRender(RenderQuestionQueue(await allQuestions));
                                                         }}>Trivial Error</Button>
                                                         <Button onClick={async () => {
-                                                            AdjustQuestionPriorityRating(selectedQuestion[0], 1);
+                                                            await AdjustQuestionPriorityRating(selectedQuestion[0], 1);
                                                             setSelectedQuestion([]);
                                                             const allQuestions = await GetAllQuestionData(selectedFile.raw);
                                                             setQuestionQueueRender(RenderQuestionQueue(await allQuestions));
                                                         }}>Manageable</Button>
                                                         <Button onClick={async () => {
-                                                            AdjustQuestionPriorityRating(selectedQuestion[0], 2);
+                                                            await AdjustQuestionPriorityRating(selectedQuestion[0], 2);
                                                             setSelectedQuestion([]);
                                                             const allQuestions = await GetAllQuestionData(selectedFile.raw);
                                                             setQuestionQueueRender(RenderQuestionQueue(await allQuestions));

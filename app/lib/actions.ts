@@ -71,6 +71,7 @@ export const ProcessFile = async (file: string, numPages: number) => {
           rightBound: x1,
           bottomBound: y1,
           priorityRating: 0,
+          hasAnswer: false,
           color: randomColor(),
         }
         await createQuestion(curr)
@@ -94,6 +95,7 @@ export const ProcessFile = async (file: string, numPages: number) => {
         rightBound: x1,
         bottomBound: y1,
         priorityRating: 0,
+        hasAnswer: false,
         color: randomColor(),
       }
       await createQuestion(curr)
@@ -196,11 +198,13 @@ export const DeleteQuestionById = async (id: string) => {
 }
 
 export const AdjustQuestionPriorityRating = async (selectedQuestion: any, deltaRating: number) => {
+  console.log(selectedQuestion, deltaRating);
   const id = selectedQuestion.id;
   const initialRating = selectedQuestion.priorityRating;
   const finalRating = initialRating + deltaRating;
   await updateQuestionById(id, {
-    priorityRating: finalRating
+    priorityRating: finalRating,
+    hasAnswer: true,
   })
 }
 
