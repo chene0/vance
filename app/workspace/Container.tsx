@@ -96,16 +96,31 @@ export function Container({ user }: { user: any }) {
     }
 
     useEffect(() => {
-        console.log("EFFECT CALLED")
+        console.log("UPDATE isManuallyAddingQuestionRef EFFECT CALLED")
         if (isManuallyAddingQuestionRef.current !== isManuallyAddingQuestion) {
             isManuallyAddingQuestionRef.current = isManuallyAddingQuestion;
         }
     }, [isManuallyAddingQuestion, isManuallyAddingQuestionRef]);
-    const handleQuestionBoxClick = useCallback((question: any, event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+    const handleQuestionBoxClick = useCallback((question: any, event: React.MouseEvent<HTMLDivElement, MouseEvent>, questions: any[]) => {
         if (!isManuallyAddingQuestionRef.current) {
             setSelectedQuestion((prevSelectedQuestion) => {
-                if (event.shiftKey || event.ctrlKey) {
-                    // TODO: Implement shift key functionality
+                if (event.shiftKey) {
+                    const curr = [...prevSelectedQuestion];
+                    const minimumPermissibleY = prevSelectedQuestion.reduce((prev, current) => (prev && prev.topBound > current.topBound) ? prev : current);
+                    const minimumPermissibleX = prevSelectedQuestion.reduce((prev, current) => (prev && prev.leftBound > current.leftBound) ? prev : current);
+                    const idMap = curr.map((question: any) => question.id);
+                    console.log("🚀 ~ setSelectedQuestion ~ minimumPermissibleY:", minimumPermissibleY)
+                    for (let i = 0; i < questions.length; i++) {
+                        const potentialSelect = questions[i];
+                        if ((potentialSelect.topBound < question.topBound || potentialSelect.leftBound < question.leftBound)
+                            && (potentialSelect.topBound > minimumPermissibleY.topBound)
+                            && !idMap.includes(potentialSelect.id)) {
+                            curr.push(potentialSelect);
+                        }
+                    }
+                    curr.push(question);
+                    return curr;
+                } else if (event.ctrlKey) {
                     console.log(prevSelectedQuestion);
                     const curr = [...prevSelectedQuestion, question];
                     console.log("🚀 ~ handleQuestionBoxClick ~ curr:", curr);
@@ -116,17 +131,18 @@ export function Container({ user }: { user: any }) {
             });
         }
     }, [setSelectedQuestion, isManuallyAddingQuestionRef]);
+    // This useEffect is used to render the feedback of any selected question boxes
     useEffect(() => {
-        console.log("EFFECT CALLED");
+        console.log("QUESTION BOX FEEDBACK EFFECT CALLED");
 
         const curr: any[] = [];
         for (let i = 0; i < selectedQuestion.length; i++) {
             const question = selectedQuestion[i];
             curr.push(
-                <div className={"absolute box-border opacity-20 z-30"}
+                <div className={"absolute box-border z-30"}
                     style={
                         {
-                            backgroundColor: 'red',
+                            backgroundColor: 'green',
                             left: `${question.rightBound}px`,
                             top: `${question.topBound}px`,
                             width: '.25rem',
@@ -215,7 +231,7 @@ export function Container({ user }: { user: any }) {
                 <div
                     onClick={(event) => {
                         event.preventDefault();
-                        handleQuestionBoxClick(question, event);
+                        handleQuestionBoxClick(question, event, questions);
                     }}
                     className={"absolute box-border opacity-20 z-30"}
                     style={
