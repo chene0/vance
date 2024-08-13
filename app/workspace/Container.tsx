@@ -303,6 +303,11 @@ export function Container({ user }: { user: any }) {
                         </Button>
                     </form>
 
+                    {/* Blank space question deselection */}
+                    <div onClick={() => {
+                        setSelectedQuestion([]);
+                    }} className="bg-white flex-grow"></div>
+
                 </div>
                 {/* DOCUMENT DISPLAY */}
                 <div className="flex flex-col basis-1/2 justify-items-center">
