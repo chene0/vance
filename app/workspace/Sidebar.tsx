@@ -34,7 +34,7 @@ function RecurseFiles(files: any) {
           </ContextMenu.Trigger>
 
           <ContextMenu.Portal>
-            <ContextMenu.Content className="ContextMenuContent">
+            <ContextMenu.Content className="ContextMenuContent z-50">
               <a className="block max-w-sm p-6 bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700">
                 <h1 className="text-black"><b>Selected Set: </b>{item}</h1>
                 <ContextMenu.Item className="ContextMenuItem text-black my-1">
@@ -59,7 +59,7 @@ function RecurseFiles(files: any) {
             </Sidebar.Collapse>
           </ContextMenu.Trigger>
           <ContextMenu.Portal>
-            <ContextMenu.Content className="ContextMenuContent">
+            <ContextMenu.Content className="ContextMenuContent z-50">
               <a className="block max-w-sm p-6 bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700">
                 <h1 className="text-black"><b>Selected Folder: </b>{item}</h1>
                 <ContextMenu.Item className="ContextMenuItem text-black my-1">
