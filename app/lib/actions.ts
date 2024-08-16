@@ -173,6 +173,10 @@ export const CreateQuestion = async(inputData: any) => {
   });
 }
 
+export const EditQuestion = async (id: string, inputData: any) => {
+  await updateQuestionById(id, inputData);
+}
+
 export const GetQuestionData = async (fileId: string, pageNumber: number) => {
   const databaseRet = await getQuestionsByPageNumberAndFileId(pageNumber, fileId);
   return await databaseRet;

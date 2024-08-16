@@ -86,6 +86,17 @@ export function Container({ user }: { user: any }) {
     const [addingColor, setAddingColor] = useState("red");
     const [addingScope, addingAnimate] = useAnimate();
 
+    // Variables for question editing
+    const [isEditingQuestion, setIsEditingQuestion] = useState<boolean>(false);
+    const leftBoundEditing = useMotionValue(0);
+    const topBoundEditing = useMotionValue(0);
+    const rightBoundEditing = useRef<number>(0);
+    const bottomBoundEditing = useRef<number>(0);
+    const editingWidth = useMotionValue(0);
+    const editingHeight = useMotionValue(0);
+    const [editingColor, setEditingColor] = useState("red");
+    const [editingScope, editingAnimate] = useAnimate();
+
     // Function runs upon document load to set the number of pages and render the question boxes
     async function onDocumentLoadSuccess({ numPages }: { numPages: number }): Promise<void> {
         setNumPages(numPages);
@@ -333,6 +344,38 @@ export function Container({ user }: { user: any }) {
                                 }>
                             </motion.div>
                             : <div></div>}
+                        {isEditingQuestion &&
+                            <div>
+                                <motion.div className="absolute box-border outline outline-slate-900 border z-40"
+                                    initial={{ left: leftBoundEditing.get() - 5, top: topBoundEditing.get() - 5, width: 10, height: 10 }}
+                                    drag
+                                    dragElastic={0}
+                                    dragMomentum={false}
+                                    dragConstraints={{ bottom: bottomBoundEditing.current - topBoundEditing.get(), right: rightBoundEditing.current - leftBoundEditing.get() }}
+                                    onDrag={(event, info) => {
+                                        const newLeftBound = selectedQuestion[0].leftBound + info.offset.x;
+                                        const newTopBound = selectedQuestion[0].topBound + info.offset.y;
+                                        if (newLeftBound < rightBoundEditing.current) leftBoundEditing.set(newLeftBound);
+                                        if (newTopBound < bottomBoundEditing.current) topBoundEditing.set(newTopBound);
+                                        editingWidth.set(Math.abs(rightBoundEditing.current - leftBoundEditing.get()));
+                                        editingHeight.set(Math.abs(bottomBoundEditing.current - topBoundEditing.get()));
+                                        editingAnimate(editingScope.current,
+                                            { left: leftBoundEditing.get(), top: topBoundEditing.get(), width: editingWidth.get(), height: editingHeight.get() },
+                                            { type: 'tween', duration: 0 });
+                                    }}
+                                    style={{ backgroundColor: 'white' }}></motion.div>
+                                <motion.div className="absolute box-border z-30"
+                                    ref={editingScope}
+                                    initial={{ left: leftBoundEditing.get(), top: topBoundEditing.get(), width: editingWidth.get(), height: editingHeight.get() }}
+                                    style={
+                                        {
+                                            backgroundColor: editingColor,
+                                            opacity: 0.75,
+                                            pointerEvents: "none"
+                                        }
+                                    }>
+                                </motion.div>
+                            </div>}
                         {questionBoxRender}
                         {renderedSelectQuestion}
                         <Document
@@ -366,7 +409,7 @@ export function Container({ user }: { user: any }) {
 
                         {/* QUESTION CONTROL */}
                         <div className="mt-4 h-full">
-                            {!isManuallyAddingQuestion ?
+                            {!isManuallyAddingQuestion && !isEditingQuestion ?
                                 <div>
                                     {(selectedQuestion.length === 0)
                                         ? <p className="text-slate-900">Select a question to get started</p>
@@ -450,6 +493,20 @@ export function Container({ user }: { user: any }) {
                                     <Button onClick={() => setIsManuallyAddingQuestion(false)}>Cancel</Button>
                                 </div>
                                 : <Button onClick={() => setIsManuallyAddingQuestion(true)}>Manually add question</Button>}
+
+                            {/* EDIT QUESTION */}
+                            {isEditingQuestion
+                                ? <Button onClick={() => setIsEditingQuestion(false)}>Cancel</Button>
+                                : <Button onClick={() => {
+                                    setIsEditingQuestion(true);
+                                    setEditingColor(selectedQuestion[0].color);
+                                    leftBoundEditing.set(selectedQuestion[0].leftBound);
+                                    topBoundEditing.set(selectedQuestion[0].topBound);
+                                    rightBoundEditing.current = selectedQuestion[0].rightBound;
+                                    bottomBoundEditing.current = selectedQuestion[0].bottomBound;
+                                    editingWidth.set(Math.abs(rightBoundEditing.current - leftBoundEditing.get()));
+                                    editingHeight.set(Math.abs(bottomBoundEditing.current - topBoundEditing.get()));
+                                }}>Edit Question</Button>}
                         </div>
                     </div>
                 </div>
