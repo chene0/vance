@@ -90,12 +90,20 @@ export function Container({ user }: { user: any }) {
     const [isEditingQuestion, setIsEditingQuestion] = useState<boolean>(false);
     const leftBoundEditing = useMotionValue(0);
     const topBoundEditing = useMotionValue(0);
-    const rightBoundEditing = useRef<number>(0);
-    const bottomBoundEditing = useRef<number>(0);
+    const rightBoundEditing = useMotionValue(0);
+    const bottomBoundEditing = useMotionValue(0);
+    const leftBoundEditingSave = useRef<number>(0);
+    const topBoundEditingSave = useRef<number>(0);
+    const rightBoundEditingSave = useRef<number>(0);
+    const bottomBoundEditingSave = useRef<number>(0);
     const editingWidth = useMotionValue(0);
     const editingHeight = useMotionValue(0);
     const [editingColor, setEditingColor] = useState("red");
     const [editingScope, editingAnimate] = useAnimate();
+    const [editingTopLeftScope, editingTopLeftAnimate] = useAnimate();
+    const [editingTopRightScope, editingTopRightAnimate] = useAnimate();
+    const [editingBottomLeftScope, editingBottomLeftAnimate] = useAnimate();
+    const [editingBottomRightScope, editingBottomRightAnimate] = useAnimate();
 
     // Function runs upon document load to set the number of pages and render the question boxes
     async function onDocumentLoadSuccess({ numPages }: { numPages: number }): Promise<void> {
@@ -332,38 +340,167 @@ export function Container({ user }: { user: any }) {
                     {/* Document render */}
                     <div className="flex-grow flow-col flex relative justify-center items-center z-40">
                         {isManuallyAddingQuestion ?
-                            <motion.div className="absolute box-border z-30"
-                                ref={addingScope}
-                                initial={{ left: leftBound.get(), top: topBound.get(), width: 0, height: 0 }}
-                                style={
-                                    {
-                                        backgroundColor: addingColor,
-                                        opacity: 0.75,
-                                        pointerEvents: "none"
-                                    }
-                                }>
-                            </motion.div>
+                            <div>
+                                <motion.div className="absolute box-border z-30"
+                                    ref={addingScope}
+                                    initial={{ left: leftBound.get(), top: topBound.get(), width: 0, height: 0 }}
+                                    style={
+                                        {
+                                            backgroundColor: addingColor,
+                                            opacity: 0.75,
+                                            pointerEvents: "none"
+                                        }
+                                    }>
+                                </motion.div>
+                            </div>
                             : <div></div>}
                         {isEditingQuestion &&
                             <div>
+                                {/* Top left dragging point */}
                                 <motion.div className="absolute box-border outline outline-slate-900 border z-40"
                                     initial={{ left: leftBoundEditing.get() - 5, top: topBoundEditing.get() - 5, width: 10, height: 10 }}
+                                    ref={editingTopLeftScope}
+                                    onMouseUp={() => {
+                                        leftBoundEditingSave.current = leftBoundEditing.get();
+                                        topBoundEditingSave.current = topBoundEditing.get();
+                                        editingTopLeftAnimate(editingTopLeftScope.current,
+                                            { left: leftBoundEditing.get() - 5, top: topBoundEditing.get() - 5 },
+                                            { type: 'tween', duration: 0 });
+                                    }}
                                     drag
                                     dragElastic={0}
                                     dragMomentum={false}
-                                    dragConstraints={{ bottom: bottomBoundEditing.current - topBoundEditing.get(), right: rightBoundEditing.current - leftBoundEditing.get() }}
+                                    dragSnapToOrigin={true}
+                                    dragConstraints={{ bottom: bottomBoundEditing.get() - topBoundEditing.get(), right: rightBoundEditing.get() - leftBoundEditing.get() }}
                                     onDrag={(event, info) => {
-                                        const newLeftBound = selectedQuestion[0].leftBound + info.offset.x;
-                                        const newTopBound = selectedQuestion[0].topBound + info.offset.y;
-                                        if (newLeftBound < rightBoundEditing.current) leftBoundEditing.set(newLeftBound);
-                                        if (newTopBound < bottomBoundEditing.current) topBoundEditing.set(newTopBound);
-                                        editingWidth.set(Math.abs(rightBoundEditing.current - leftBoundEditing.get()));
-                                        editingHeight.set(Math.abs(bottomBoundEditing.current - topBoundEditing.get()));
+                                        console.log("TOP LEFT:", info.offset.x, info.offset.y);
+                                        const newLeftBound = leftBoundEditingSave.current + info.offset.x;
+                                        const newTopBound = topBoundEditingSave.current + info.offset.y;
+                                        if (newLeftBound < rightBoundEditing.get()) leftBoundEditing.set(newLeftBound);
+                                        if (newTopBound < bottomBoundEditing.get()) topBoundEditing.set(newTopBound);
+                                        editingWidth.set(Math.abs(rightBoundEditing.get() - leftBoundEditing.get()));
+                                        editingHeight.set(Math.abs(bottomBoundEditing.get() - topBoundEditing.get()));
                                         editingAnimate(editingScope.current,
                                             { left: leftBoundEditing.get(), top: topBoundEditing.get(), width: editingWidth.get(), height: editingHeight.get() },
                                             { type: 'tween', duration: 0 });
+                                        editingTopRightAnimate(editingTopRightScope.current,
+                                            { top: topBoundEditing.get() - 5 },
+                                            { type: 'tween', duration: 0 });
+                                        editingBottomLeftAnimate(editingBottomLeftScope.current,
+                                            { left: leftBoundEditing.get() - 5 },
+                                            { type: 'tween', duration: 0 });
                                     }}
                                     style={{ backgroundColor: 'white' }}></motion.div>
+
+                                {/* Top right dragging point */}
+                                <motion.div className="absolute box-border outline outline-slate-900 border z-40"
+                                    initial={{ left: rightBoundEditing.get() - 5, top: topBoundEditing.get() - 5, width: 10, height: 10 }}
+                                    ref={editingTopRightScope}
+                                    onMouseUp={() => {
+                                        rightBoundEditingSave.current = rightBoundEditing.get();
+                                        topBoundEditingSave.current = topBoundEditing.get();
+                                        editingTopRightAnimate(editingTopRightScope.current,
+                                            { left: rightBoundEditing.get() - 5, top: topBoundEditing.get() - 5 },
+                                            { type: 'tween', duration: 0 });
+                                    }}
+                                    drag
+                                    dragElastic={0}
+                                    dragMomentum={false}
+                                    dragSnapToOrigin={true}
+                                    dragConstraints={{ bottom: bottomBoundEditing.get() - topBoundEditing.get(), left: leftBoundEditing.get() - rightBoundEditing.get() }}
+                                    onDrag={(event, info) => {
+                                        console.log("TOP RIGHT:", info.offset.x, info.offset.y);
+                                        const newRightBound = rightBoundEditingSave.current + info.offset.x;
+                                        const newTopBound = topBoundEditingSave.current + info.offset.y;
+                                        if (newRightBound > leftBoundEditing.get()) rightBoundEditing.set(newRightBound);
+                                        if (newTopBound < bottomBoundEditing.get()) topBoundEditing.set(newTopBound);
+                                        editingWidth.set(Math.abs(rightBoundEditing.get() - leftBoundEditing.get()));
+                                        editingHeight.set(Math.abs(bottomBoundEditing.get() - topBoundEditing.get()));
+                                        editingAnimate(editingScope.current,
+                                            { left: leftBoundEditing.get(), top: topBoundEditing.get(), width: editingWidth.get(), height: editingHeight.get() },
+                                            { type: 'tween', duration: 0 });
+                                        editingTopLeftAnimate(editingTopLeftScope.current,
+                                            { top: topBoundEditing.get() - 5 },
+                                            { type: 'tween', duration: 0 });
+                                        editingBottomRightAnimate(editingBottomRightScope.current,
+                                            { left: rightBoundEditing.get() - 5 },
+                                            { type: 'tween', duration: 0 });
+                                    }}
+                                    style={{ backgroundColor: 'white' }}></motion.div>
+
+                                {/* Bottom left dragging point */}
+                                <motion.div className="absolute box-border outline outline-slate-900 border z-40"
+                                    initial={{ left: leftBoundEditing.get() - 5, top: bottomBoundEditing.get() - 5, width: 10, height: 10 }}
+                                    ref={editingBottomLeftScope}
+                                    onMouseUp={() => {
+                                        leftBoundEditingSave.current = leftBoundEditing.get();
+                                        bottomBoundEditingSave.current = bottomBoundEditing.get();
+                                        editingBottomLeftAnimate(editingBottomLeftScope.current,
+                                            { left: leftBoundEditing.get() - 5, top: bottomBoundEditing.get() - 5 },
+                                            { type: 'tween', duration: 0 });
+                                    }}
+                                    drag
+                                    dragElastic={0}
+                                    dragMomentum={false}
+                                    dragSnapToOrigin={true}
+                                    dragConstraints={{ top: topBoundEditing.get() - bottomBoundEditing.get(), right: rightBoundEditing.get() - leftBoundEditing.get() }}
+                                    onDrag={(event, info) => {
+                                        console.log("BOTTOM LEFT:", info.offset.x, info.offset.y);
+                                        const newLeftBound = leftBoundEditingSave.current + info.offset.x;
+                                        const newBottomBound = bottomBoundEditingSave.current + info.offset.y;
+                                        if (newLeftBound < rightBoundEditing.get()) leftBoundEditing.set(newLeftBound);
+                                        if (newBottomBound > topBoundEditing.get()) bottomBoundEditing.set(newBottomBound);
+                                        editingWidth.set(Math.abs(rightBoundEditing.get() - leftBoundEditing.get()));
+                                        editingHeight.set(Math.abs(bottomBoundEditing.get() - topBoundEditing.get()));
+                                        editingAnimate(editingScope.current,
+                                            { left: leftBoundEditing.get(), top: topBoundEditing.get(), width: editingWidth.get(), height: editingHeight.get() },
+                                            { type: 'tween', duration: 0 });
+                                        editingTopLeftAnimate(editingTopLeftScope.current,
+                                            { left: leftBoundEditing.get() - 5 },
+                                            { type: 'tween', duration: 0 });
+                                        editingBottomRightAnimate(editingBottomRightScope.current,
+                                            { top: bottomBoundEditing.get() - 5 },
+                                            { type: 'tween', duration: 0 });
+                                    }}
+                                    style={{ backgroundColor: 'white' }}></motion.div>
+
+                                {/* Bottom right dragging point */}
+                                <motion.div className="absolute box-border outline outline-slate-900 border z-40"
+                                    initial={{ left: rightBoundEditing.get() - 5, top: bottomBoundEditing.get() - 5, width: 10, height: 10 }}
+                                    ref={editingBottomRightScope}
+                                    onMouseUp={() => {
+                                        rightBoundEditingSave.current = rightBoundEditing.get();
+                                        bottomBoundEditingSave.current = bottomBoundEditing.get();
+                                        editingBottomRightAnimate(editingBottomRightScope.current,
+                                            { left: rightBoundEditing.get() - 5, top: bottomBoundEditing.get() - 5 },
+                                            { type: 'tween', duration: 0 });
+                                    }}
+                                    drag
+                                    dragElastic={0}
+                                    dragMomentum={false}
+                                    dragSnapToOrigin={true}
+                                    dragConstraints={{ top: topBoundEditing.get() - bottomBoundEditing.get(), left: leftBoundEditing.get() - rightBoundEditing.get() }}
+                                    onDrag={(event, info) => {
+                                        console.log("BOTTOM RIGHT:", info.offset.x, info.offset.y);
+                                        const newRightBound = rightBoundEditingSave.current + info.offset.x;
+                                        const newBottomBound = bottomBoundEditingSave.current + info.offset.y;
+                                        if (newRightBound > leftBoundEditing.get()) rightBoundEditing.set(newRightBound);
+                                        if (newBottomBound > topBoundEditing.get()) bottomBoundEditing.set(newBottomBound);
+                                        editingWidth.set(Math.abs(rightBoundEditing.get() - leftBoundEditing.get()));
+                                        editingHeight.set(Math.abs(bottomBoundEditing.get() - topBoundEditing.get()));
+                                        editingAnimate(editingScope.current,
+                                            { left: leftBoundEditing.get(), top: topBoundEditing.get(), width: editingWidth.get(), height: editingHeight.get() },
+                                            { type: 'tween', duration: 0 });
+                                        editingTopRightAnimate(editingTopRightScope.current,
+                                            { left: rightBoundEditing.get() - 5 },
+                                            { type: 'tween', duration: 0 });
+                                        editingBottomLeftAnimate(editingBottomLeftScope.current,
+                                            { top: bottomBoundEditing.get() - 5 },
+                                            { type: 'tween', duration: 0 });
+                                    }}
+                                    style={{ backgroundColor: 'white' }}></motion.div>
+
+                                {/* Feedback/final question box */}
                                 <motion.div className="absolute box-border z-30"
                                     ref={editingScope}
                                     initial={{ left: leftBoundEditing.get(), top: topBoundEditing.get(), width: editingWidth.get(), height: editingHeight.get() }}
@@ -498,14 +635,19 @@ export function Container({ user }: { user: any }) {
                             {isEditingQuestion
                                 ? <Button onClick={() => setIsEditingQuestion(false)}>Cancel</Button>
                                 : <Button onClick={() => {
+                                    if (selectedQuestion.length === 0) return;
                                     setIsEditingQuestion(true);
                                     setEditingColor(selectedQuestion[0].color);
                                     leftBoundEditing.set(selectedQuestion[0].leftBound);
                                     topBoundEditing.set(selectedQuestion[0].topBound);
-                                    rightBoundEditing.current = selectedQuestion[0].rightBound;
-                                    bottomBoundEditing.current = selectedQuestion[0].bottomBound;
-                                    editingWidth.set(Math.abs(rightBoundEditing.current - leftBoundEditing.get()));
-                                    editingHeight.set(Math.abs(bottomBoundEditing.current - topBoundEditing.get()));
+                                    rightBoundEditing.set(selectedQuestion[0].rightBound);
+                                    bottomBoundEditing.set(selectedQuestion[0].bottomBound);
+                                    leftBoundEditingSave.current = selectedQuestion[0].leftBound;
+                                    topBoundEditingSave.current = selectedQuestion[0].topBound;
+                                    rightBoundEditingSave.current = selectedQuestion[0].rightBound;
+                                    bottomBoundEditingSave.current = selectedQuestion[0].bottomBound;
+                                    editingWidth.set(Math.abs(rightBoundEditing.get() - leftBoundEditing.get()));
+                                    editingHeight.set(Math.abs(bottomBoundEditing.get() - topBoundEditing.get()));
                                 }}>Edit Question</Button>}
                         </div>
                     </div>
