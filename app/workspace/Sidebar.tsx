@@ -55,7 +55,12 @@ function RecurseFiles(files: any) {
         <ContextMenu.Root>
           <ContextMenu.Trigger className="ContextMenuTrigger">
             <Sidebar.Collapse label={item} key={item}>
-              {RecurseFiles(files[item])}
+              <div className="flex flex-row">
+                <div className="bg-blue-300 opacity-25 flex basis-10"></div>
+                <div className="flex flex-grow flex-col">
+                  {RecurseFiles(files[item])}
+                </div>
+              </div>
             </Sidebar.Collapse>
           </ContextMenu.Trigger>
           <ContextMenu.Portal>
