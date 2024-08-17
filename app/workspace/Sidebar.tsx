@@ -93,16 +93,39 @@ function RecurseFiles(files: any) {
 
 export default function Component(files: any) {
   const render = RecurseFiles(files.files)
+  const dispatch = useAppDispatch()
 
   return (
     <div>
-      <Sidebar aria-label="Sidebar with multi-level dropdown example">
-        <Sidebar.Items>
-          <Sidebar.ItemGroup>
-            {render}
-          </Sidebar.ItemGroup>
-        </Sidebar.Items>
-      </Sidebar>
+      <ContextMenu.Root>
+        <ContextMenu.Trigger className="ContextMenuTrigger">
+          <Sidebar aria-label="Sidebar with multi-level dropdown example">
+            <Sidebar.Items>
+              <Sidebar.ItemGroup>
+                {render}
+              </Sidebar.ItemGroup>
+            </Sidebar.Items>
+          </Sidebar>
+        </ContextMenu.Trigger>
+        <ContextMenu.Portal>
+          <ContextMenu.Content className="ContextMenuContent z-50">
+            <a className="block max-w-sm p-6 bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700">
+              <ContextMenu.Item className="ContextMenuItem text-black my-1">
+                <Button onClick={() => {
+                  dispatch(setModalFolderState(null))
+                }}>
+                  Add folder to root
+                </Button>
+              </ContextMenu.Item>
+              <ContextMenu.Item className="ContextMenuItem text-black my-1">
+                <Button onClick={() => dispatch(setModalSetState(null))}>
+                  Create new set to root
+                </Button>
+              </ContextMenu.Item>
+            </a>
+          </ContextMenu.Content>
+        </ContextMenu.Portal>
+      </ContextMenu.Root>
     </div>
   );
 }

@@ -248,7 +248,12 @@ export async function CreateSet(user: any, setName: string, parentFolder: string
   })
 
   // Update user's content json with the new set
-  const newStructure = RecurseFilesCreateSet(user.content, parentFolder, setName, hash);
+  const newStructure = (parentFolder)
+    ? RecurseFilesCreateSet(user.content, parentFolder, setName, hash)
+    : {
+        ...user.content,
+        [setName]: "file" + hash + ".pdf"
+      };
   isSetCreated = false;
   console.log(await updateUserById(user.id as string, {
     content: newStructure
@@ -355,7 +360,12 @@ function RecurseFilesDeleteSet(files: any, targetSetID: string) : any{
 
 let isAdded = false;
 export async function AddFolder(parentFolder: string, prospectiveFolder: string, files: any, user: any){
-  const newStructure = RecurseFilesFindTargetFolder(files, parentFolder, prospectiveFolder)
+  const newStructure = (parentFolder)
+    ? RecurseFilesFindTargetFolder(files, parentFolder, prospectiveFolder)
+    : {
+        ...user.content,
+        [prospectiveFolder]: {}
+      };
   isAdded = false;
   console.log(await updateUserById(user.id as string, {
     content: newStructure

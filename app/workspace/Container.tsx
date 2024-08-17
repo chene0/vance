@@ -759,7 +759,7 @@ export function Container({ user }: { user: any }) {
                             dispatch(setModalFolderState(''))
                         }}>
                             <TextInput type="text" name="folder-name" />
-                            <Button type="submit">Add Subfolder</Button>
+                            <Button type="submit">Add {(modalFolderState.folder) ? 'Subfolder' : 'Folder'}</Button>
                         </form>
                     </Modal.Body>
                     <Modal.Footer>
