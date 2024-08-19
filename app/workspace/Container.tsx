@@ -800,6 +800,8 @@ export function Container({ user }: { user: any }) {
                             setQuestionBoxRender(RenderQuestionBoxes(await currentQuestions));
                             const allQuestions = await GetAllQuestionData(selectedFile.raw);
                             setQuestionQueueRender(RenderQuestionQueue(await allQuestions));
+                            // RESET SELECTED QUESTION
+                            setSelectedQuestion([]);
                             // RESET MODAL STATE
                             dispatch(setModalQuestionDeletionState([]))
                         }}>

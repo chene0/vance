@@ -20,10 +20,6 @@ export default async function Component() {
         <NavbarLink href="#" active>
           Home
         </NavbarLink>
-        <NavbarLink href="#">About</NavbarLink>
-        <NavbarLink href="#">Services</NavbarLink>
-        <NavbarLink href="#">Pricing</NavbarLink>
-        <NavbarLink href="#">Contact</NavbarLink>
       </NavbarCollapse>
     </Navbar>
   );
