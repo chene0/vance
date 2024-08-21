@@ -1,9 +1,12 @@
-import Sidebar from './Sidebar'
+import { Button, Navbar, NavbarBrand, NavbarCollapse, NavbarLink, NavbarToggle } from "flowbite-react";
+import AnimatedLogo from "../global-components/AnimatedLogo";
+import { AvatarDropdown } from "../global-components/AvatarDropdown";
 import { getUserById, updateUserById, } from '@/src/db/queries'
 import { auth } from '@/auth'
 import Wrapper from './Container';
 import { signOut } from '@/auth';
 import type { Metadata } from "next";
+import GlobalNavbar from "../global-components/GlobalNavbar";
 
 export const metadata: Metadata = {
     title: "Your workspace",
@@ -14,11 +17,10 @@ export default async function Page() {
     const session = await auth()
     const user = await getUserById(session?.user.id as string)
 
-    const files = await user[0].content;
-
 
     return (
-        <div>
+        <div className="divide-y divide-solid">
+            <GlobalNavbar {...(user[0])} />
             <Wrapper user={await user} />
         </div>
     )

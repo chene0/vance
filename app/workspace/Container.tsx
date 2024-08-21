@@ -292,21 +292,12 @@ export function Container({ user }: { user: any }) {
 
     return (
         <div className="bg-white min-h-screen">
-            <div className="flex flex-row">
+            <div className="flex flex-row divide-x divide-solid">
                 {/* SIDEBAR */}
-                <div className="basis-1/4 flex flex-col">
+                <div className="flex basis-1/6 flex-grow flex-col">
 
                     {/* Sidebar with files */}
                     <Sidebar files={currentFiles} userId={user[0].id} />
-
-                    {/* Sign out button */}
-                    <form
-                        action={signOut}
-                    >
-                        <Button type="submit">
-                            <div className="hidden md:block">Sign Out</div>
-                        </Button>
-                    </form>
 
                     {/* Detect and autogenerate questions button */}
                     <form action={async () => {
@@ -329,7 +320,7 @@ export function Container({ user }: { user: any }) {
 
                 </div>
                 {/* DOCUMENT DISPLAY */}
-                <div className="flex flex-col basis-1/2 justify-items-center">
+                <div className="flex flex-col basis-7/12 flex-grow justify-items-center">
                     {/* Question queue */}
                     <div className="justify-self-center">
                         <Button.Group>
@@ -528,7 +519,7 @@ export function Container({ user }: { user: any }) {
 
                 {/* CONTROL PANEL */}
                 <div className="basis-1/4">
-                    <div className="sticky top-0">
+                    <div className="sticky top-0 divide-y divide-solid">
                         {/* PAGINATION */}
                         {numPages > 0
                             ? <Pagination currentPage={pageNumber} totalPages={numPages!}
@@ -545,137 +536,148 @@ export function Container({ user }: { user: any }) {
 
 
                         {/* QUESTION CONTROL */}
-                        <div className="mt-4 h-full">
-                            {!isManuallyAddingQuestion && !isEditingQuestion ?
-                                <div>
-                                    {(selectedQuestion.length === 0)
-                                        ? <p className="text-slate-900">Select a question to get started</p>
-                                        :
-                                        <div className="flex flex-col flex-wrap h-full">
-                                            {selectedQuestion.length > 1 ? <div></div>
-                                                : <div>
-                                                    <h1 className="text-slate-900">{`Question ${selectedQuestion[0].name}`}</h1>
-                                                    <Button.Group>
-                                                        <Button onClick={async () => {
-                                                            await AdjustQuestionPriorityRating(selectedQuestion[0], -2);
-                                                            setSelectedQuestion([]);
-                                                            const allQuestions = await GetAllQuestionData(selectedFile.raw);
-                                                            setQuestionQueueRender(RenderQuestionQueue(await allQuestions));
-                                                        }}>Clueless</Button>
-                                                        <Button onClick={async () => {
-                                                            await AdjustQuestionPriorityRating(selectedQuestion[0], -1);
-                                                            setSelectedQuestion([]);
-                                                            const allQuestions = await GetAllQuestionData(selectedFile.raw);
-                                                            setQuestionQueueRender(RenderQuestionQueue(await allQuestions));
-                                                        }}>Trivial Error</Button>
-                                                        <Button onClick={async () => {
-                                                            await AdjustQuestionPriorityRating(selectedQuestion[0], 1);
-                                                            setSelectedQuestion([]);
-                                                            const allQuestions = await GetAllQuestionData(selectedFile.raw);
-                                                            setQuestionQueueRender(RenderQuestionQueue(await allQuestions));
-                                                        }}>Manageable</Button>
-                                                        <Button onClick={async () => {
-                                                            await AdjustQuestionPriorityRating(selectedQuestion[0], 2);
-                                                            setSelectedQuestion([]);
-                                                            const allQuestions = await GetAllQuestionData(selectedFile.raw);
-                                                            setQuestionQueueRender(RenderQuestionQueue(await allQuestions));
-                                                        }}>Easy</Button>
-                                                    </Button.Group>
-                                                </div>}
+                        <div className="mt-4 h-full divide-y divide-solid">
+                            <div className="">
+                                {!isManuallyAddingQuestion && !isEditingQuestion ?
+                                    <div>
+                                        {(selectedQuestion.length === 0)
+                                            ? <p className="text-slate-900 text-center">Select a question to get started</p>
+                                            :
+                                            <div className="flex flex-col flex-wrap h-full">
+                                                {selectedQuestion.length > 1 ? <div></div>
+                                                    : <div>
+                                                        <h1 className="text-slate-900 text-center">{`Question ${selectedQuestion[0].name}`}</h1>
+                                                        <Button.Group className="my-4">
+                                                            <Button onClick={async () => {
+                                                                await AdjustQuestionPriorityRating(selectedQuestion[0], -2);
+                                                                setSelectedQuestion([]);
+                                                                const allQuestions = await GetAllQuestionData(selectedFile.raw);
+                                                                setQuestionQueueRender(RenderQuestionQueue(await allQuestions));
+                                                            }}>Clueless</Button>
+                                                            <Button onClick={async () => {
+                                                                await AdjustQuestionPriorityRating(selectedQuestion[0], -1);
+                                                                setSelectedQuestion([]);
+                                                                const allQuestions = await GetAllQuestionData(selectedFile.raw);
+                                                                setQuestionQueueRender(RenderQuestionQueue(await allQuestions));
+                                                            }}>Trivial Error</Button>
+                                                            <Button onClick={async () => {
+                                                                await AdjustQuestionPriorityRating(selectedQuestion[0], 1);
+                                                                setSelectedQuestion([]);
+                                                                const allQuestions = await GetAllQuestionData(selectedFile.raw);
+                                                                setQuestionQueueRender(RenderQuestionQueue(await allQuestions));
+                                                            }}>Manageable</Button>
+                                                            <Button onClick={async () => {
+                                                                await AdjustQuestionPriorityRating(selectedQuestion[0], 2);
+                                                                setSelectedQuestion([]);
+                                                                const allQuestions = await GetAllQuestionData(selectedFile.raw);
+                                                                setQuestionQueueRender(RenderQuestionQueue(await allQuestions));
+                                                            }}>Easy</Button>
+                                                        </Button.Group>
+                                                    </div>}
+                                            </div>}
+                                    </div>
+                                    : <div></div>}
+                            </div>
 
+                            <div className="">
+                                {/* MANUALLY ADD QUESTION */}
+                                {isManuallyAddingQuestion
+                                    ?
+                                    <div>
+                                        <form onSubmit={async (event) => {
+                                            event.preventDefault();
+                                            const formData = new FormData(event.target as HTMLFormElement);
 
-                                            <div className="bottom-1 mt-32">
-                                                <Button color="warning"
-                                                    onClick={() => {
-                                                        dispatch(setModalQuestionDeletionState(selectedQuestion.map((question: any) => question.id)));
-                                                    }}>Delete question{selectedQuestion.length > 1 ? 's' : ''}</Button>
-                                            </div>
-                                        </div>}
-                                </div>
-                                : <div></div>}
+                                            const inputData = {
+                                                fileId: selectedFile.raw,
+                                                name: formData.get("file-name") as string,
+                                                isAutogenerated: false,
+                                                pageNumber: pageNumber - 1,
+                                                leftBound: Math.min(leftBound.get(), leftBoundSave.current),
+                                                topBound: Math.min(topBound.get(), topBoundSave.current),
+                                                rightBound: Math.max(rightBound.current, leftBoundSave.current),
+                                                bottomBound: Math.max(bottomBound.current, topBoundSave.current),
+                                                priorityRating: 0,
+                                                color: addingColor,
+                                            }
 
-                            {/* MANUALLY ADD QUESTION */}
-                            {isManuallyAddingQuestion
-                                ?
-                                <div>
-                                    <form onSubmit={async (event) => {
-                                        event.preventDefault();
-                                        const formData = new FormData(event.target as HTMLFormElement);
+                                            await CreateQuestion(inputData);
 
-                                        const inputData = {
-                                            fileId: selectedFile.raw,
-                                            name: formData.get("file-name") as string,
-                                            isAutogenerated: false,
-                                            pageNumber: pageNumber - 1,
-                                            leftBound: Math.min(leftBound.get(), leftBoundSave.current),
-                                            topBound: Math.min(topBound.get(), topBoundSave.current),
-                                            rightBound: Math.max(rightBound.current, leftBoundSave.current),
-                                            bottomBound: Math.max(bottomBound.current, topBoundSave.current),
-                                            priorityRating: 0,
-                                            color: addingColor,
-                                        }
+                                            const currentQuestions = await GetQuestionData(selectedFile.raw, pageNumber - 1);
+                                            setQuestionBoxRender(RenderQuestionBoxes(await currentQuestions));
 
-                                        await CreateQuestion(inputData);
+                                            setIsDragging(false);
+                                            setIsManuallyAddingQuestion(false);
+                                        }}>
+                                            <FloatingLabel variant="outlined" label="File Name/Index" name="file-name" />
+                                            <HexColorPicker color={addingColor} onChange={setAddingColor} />;
+                                            <Button type="submit">Save</Button>
+                                        </form>
+                                        <Button onClick={() => setIsManuallyAddingQuestion(false)}>Cancel</Button>
+                                    </div>
+                                    : <Button
+                                        className="mx-auto my-4"
+                                        onClick={() => setIsManuallyAddingQuestion(true)}
+                                    >Manually add question</Button>}
+                            </div>
 
-                                        const currentQuestions = await GetQuestionData(selectedFile.raw, pageNumber - 1);
-                                        setQuestionBoxRender(RenderQuestionBoxes(await currentQuestions));
+                            <div className="">
+                                {/* EDIT QUESTION */}
+                                {isEditingQuestion
+                                    ?
+                                    <div>
+                                        <form onSubmit={async (event) => {
+                                            event.preventDefault();
+                                            const formData = new FormData(event.target as HTMLFormElement);
 
-                                        setIsDragging(false);
-                                        setIsManuallyAddingQuestion(false);
-                                    }}>
-                                        <FloatingLabel variant="outlined" label="File Name/Index" name="file-name" />
-                                        <HexColorPicker color={addingColor} onChange={setAddingColor} />;
-                                        <Button type="submit">Save</Button>
-                                    </form>
-                                    <Button onClick={() => setIsManuallyAddingQuestion(false)}>Cancel</Button>
-                                </div>
-                                : <Button onClick={() => setIsManuallyAddingQuestion(true)}>Manually add question</Button>}
+                                            const inputData = {
+                                                name: formData.get("file-name") as string,
+                                                leftBound: leftBoundEditing.get(),
+                                                topBound: topBoundEditing.get(),
+                                                rightBound: rightBoundEditing.get(),
+                                                bottomBound: bottomBoundEditing.get(),
+                                                color: editingColor,
+                                            }
 
-                            {/* EDIT QUESTION */}
-                            {isEditingQuestion
-                                ?
-                                <div>
-                                    <form onSubmit={async (event) => {
-                                        event.preventDefault();
-                                        const formData = new FormData(event.target as HTMLFormElement);
+                                            await EditQuestion(selectedQuestion[0].id, inputData);
 
-                                        const inputData = {
-                                            name: formData.get("file-name") as string,
-                                            leftBound: leftBoundEditing.get(),
-                                            topBound: topBoundEditing.get(),
-                                            rightBound: rightBoundEditing.get(),
-                                            bottomBound: bottomBoundEditing.get(),
-                                            color: editingColor,
-                                        }
+                                            const currentQuestions = await GetQuestionData(selectedFile.raw, pageNumber - 1);
+                                            setQuestionBoxRender(RenderQuestionBoxes(await currentQuestions));
 
-                                        await EditQuestion(selectedQuestion[0].id, inputData);
+                                            setIsEditingQuestion(false);
+                                        }}>
+                                            <FloatingLabel variant="outlined" label="File Name/Index" name="file-name" />
+                                            <HexColorPicker color={editingColor} onChange={setEditingColor} />;
+                                            <Button type="submit">Save</Button>
+                                        </form>
+                                        <Button onClick={() => setIsEditingQuestion(false)}>Cancel</Button>
+                                    </div>
+                                    : <Button className="my-4 mx-auto" onClick={() => {
+                                        if (selectedQuestion.length === 0) return;
+                                        setIsEditingQuestion(true);
+                                        setEditingColor(selectedQuestion[0].color);
+                                        leftBoundEditing.set(selectedQuestion[0].leftBound);
+                                        topBoundEditing.set(selectedQuestion[0].topBound);
+                                        rightBoundEditing.set(selectedQuestion[0].rightBound);
+                                        bottomBoundEditing.set(selectedQuestion[0].bottomBound);
+                                        leftBoundEditingSave.current = selectedQuestion[0].leftBound;
+                                        topBoundEditingSave.current = selectedQuestion[0].topBound;
+                                        rightBoundEditingSave.current = selectedQuestion[0].rightBound;
+                                        bottomBoundEditingSave.current = selectedQuestion[0].bottomBound;
+                                        editingWidth.set(Math.abs(rightBoundEditing.get() - leftBoundEditing.get()));
+                                        editingHeight.set(Math.abs(bottomBoundEditing.get() - topBoundEditing.get()));
+                                    }}>Edit Question</Button>}
+                            </div>
 
-                                        const currentQuestions = await GetQuestionData(selectedFile.raw, pageNumber - 1);
-                                        setQuestionBoxRender(RenderQuestionBoxes(await currentQuestions));
-
-                                        setIsEditingQuestion(false);
-                                    }}>
-                                        <FloatingLabel variant="outlined" label="File Name/Index" name="file-name" />
-                                        <HexColorPicker color={editingColor} onChange={setEditingColor} />;
-                                        <Button type="submit">Save</Button>
-                                    </form>
-                                    <Button onClick={() => setIsEditingQuestion(false)}>Cancel</Button>
-                                </div>
-                                : <Button onClick={() => {
-                                    if (selectedQuestion.length === 0) return;
-                                    setIsEditingQuestion(true);
-                                    setEditingColor(selectedQuestion[0].color);
-                                    leftBoundEditing.set(selectedQuestion[0].leftBound);
-                                    topBoundEditing.set(selectedQuestion[0].topBound);
-                                    rightBoundEditing.set(selectedQuestion[0].rightBound);
-                                    bottomBoundEditing.set(selectedQuestion[0].bottomBound);
-                                    leftBoundEditingSave.current = selectedQuestion[0].leftBound;
-                                    topBoundEditingSave.current = selectedQuestion[0].topBound;
-                                    rightBoundEditingSave.current = selectedQuestion[0].rightBound;
-                                    bottomBoundEditingSave.current = selectedQuestion[0].bottomBound;
-                                    editingWidth.set(Math.abs(rightBoundEditing.get() - leftBoundEditing.get()));
-                                    editingHeight.set(Math.abs(bottomBoundEditing.get() - topBoundEditing.get()));
-                                }}>Edit Question</Button>}
+                            <div className="">
+                                {!isManuallyAddingQuestion && !isEditingQuestion && selectedQuestion.length > 0 &&
+                                    <div className="mt-32">
+                                        <Button color="warning"
+                                            onClick={() => {
+                                                dispatch(setModalQuestionDeletionState(selectedQuestion.map((question: any) => question.id)));
+                                            }}>Delete question{selectedQuestion.length > 1 ? 's' : ''}</Button>
+                                    </div>}
+                            </div>
                         </div>
                     </div>
                 </div>
