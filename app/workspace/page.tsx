@@ -17,7 +17,6 @@ export default async function Page() {
     const session = await auth()
     const user = await getUserById(session?.user.id as string)
 
-
     return (
         <div className="divide-y divide-solid">
             <GlobalNavbar {...(user[0])} />

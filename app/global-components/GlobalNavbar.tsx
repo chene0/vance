@@ -12,13 +12,15 @@ export default function GlobalNavbar(user: {
     content: any;
     misc: any;
 }) {
+    console.log("🚀 ~ user:", user)
+
     return (
-        <Navbar fluid>
+        <Navbar fluid className="relative">
             <NavbarBrand href="./">
                 <AnimatedLogo />
             </NavbarBrand>
             <div className="flex md:order-2">
-                {user
+                {Object.keys(user).length > 0
                     ?
                     <AvatarDropdown {...user} />
                     :
@@ -26,7 +28,7 @@ export default function GlobalNavbar(user: {
 
                 <NavbarToggle />
             </div>
-            <NavbarCollapse>
+            <NavbarCollapse className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
                 <NavbarLink className='text-center' href="./" active>
                     Home
                 </NavbarLink>
