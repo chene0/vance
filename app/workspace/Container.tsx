@@ -25,6 +25,7 @@ import { HexColorPicker } from "react-colorful";
 
 import { motion, useAnimate, useMotionValue } from 'framer-motion';
 import { HiOutlineExclamationCircle } from "react-icons/hi";
+import { InsertQuestion } from "@/src/db/schema";
 
 // pdfjs.GlobalWorkerOptions.workerSrc = new URL(
 //     'pdfjs-dist/legacy/build/pdf.worker.min.mjs',
@@ -586,7 +587,7 @@ export function Container({ user }: { user: any }) {
                                                 bottomBound: Math.max(bottomBound.current, topBoundSave.current),
                                                 priorityRating: 0,
                                                 color: addingColor,
-                                            }
+                                            };
 
                                             await CreateQuestion(inputData);
 

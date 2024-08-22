@@ -161,10 +161,13 @@ const ProcessPage = (tsx: string[][]) => {
 }
 
 export const CreateQuestion = async(inputData: any) => {
-  await createQuestion({
+  const questionData = {
     ...inputData,
     id: 'question' + randomstring.generate(44),
-  });
+    hasAnswer: false,
+  } satisfies InsertQuestion;
+
+  await createQuestion(questionData);
 }
 
 export const EditQuestion = async (id: string, inputData: any) => {
