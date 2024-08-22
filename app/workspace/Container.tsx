@@ -793,6 +793,12 @@ export function Container({ user }: { user: any }) {
                                     console.log("🚀 ~ <formonSubmit={ ~ targetSetID:", targetSetID)
                                     const updatedFiles = DeleteSet(user[0], currentFiles, targetSetID);
                                     setCurrentFiles(await updatedFiles);
+                                    // Reset document display
+                                    dispatch(setSelectedFile({ raw: '', entities: '' }));
+                                    // Reset question box display
+                                    setQuestionBoxRender([]);
+                                    // Reset question queue display
+                                    setQuestionQueueRender([]);
                                     dispatch(setModalSetDeletionState(''));
                                 }}>
                                     {"Yes, I'm sure"}
