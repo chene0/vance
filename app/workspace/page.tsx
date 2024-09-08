@@ -7,6 +7,8 @@ import Wrapper from './Container';
 import { signOut } from '@/auth';
 import type { Metadata } from "next";
 import GlobalNavbar from "../global-components/GlobalNavbar";
+import fs from 'fs';
+import path from 'path';
 
 export const metadata: Metadata = {
     title: "Your workspace",
@@ -16,6 +18,10 @@ export const metadata: Metadata = {
 export default async function Page() {
     const session = await auth()
     const user = await getUserById(session?.user.id as string)
+
+    // const tesseractTouch = fs.readFileSync(path.join(process.cwd(), 'node_modules/tesseract.js/src/worker-script/node/index.js'));
+    // const tesseractTouchTwo = fs.readFileSync(path.join(process.cwd(), 'public/tesseract-core-simd.wasm'));
+    // const tesseractTouchThree = fs.readFileSync(path.join(process.cwd(), 'node_modules/tesseract.js-core/tesseract-core.wasm.js'));
 
     return (
         <div className="divide-y divide-solid">

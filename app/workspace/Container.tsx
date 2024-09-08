@@ -26,6 +26,8 @@ import { HexColorPicker } from "react-colorful";
 import { motion, useAnimate, useMotionValue } from 'framer-motion';
 import { HiOutlineExclamationCircle } from "react-icons/hi";
 import { InsertQuestion } from "@/src/db/schema";
+import Tesseract from 'tesseract.js';
+import path from "path";
 
 // pdfjs.GlobalWorkerOptions.workerSrc = new URL(
 //     'pdfjs-dist/legacy/build/pdf.worker.min.mjs',
@@ -256,10 +258,10 @@ export function Container({ user }: { user: any }) {
                         event.preventDefault();
                         handleQuestionBoxClick(question, event, questions);
                     }}
-                    className={"absolute box-border opacity-20 z-30"}
+                    className={"absolute outline outline-4 box-border opacity-60 z-30"}
                     style={
                         {
-                            backgroundColor: question.color,
+                            outlineColor: question.color,
                             left: `${question.leftBound}px`,
                             top: `${question.topBound}px`,
                             width: `${width}px`,
@@ -307,6 +309,12 @@ export function Container({ user }: { user: any }) {
                     <div onClick={() => {
                         setSelectedQuestion([]);
                     }} className="bg-white flex-grow"></div>
+
+                    <Button onClick={async () => {
+                        const worker = await Tesseract.createWorker('eng', 1, { workerPath: path.join(process.cwd(), "/node_modules/tesseract.js/src/worker-script/node/index.js") });
+                        console.log(worker);
+                        await worker.terminate();
+                    }}>CREATE WORKER</Button>
 
                 </div>
                 {/* DOCUMENT DISPLAY */}
