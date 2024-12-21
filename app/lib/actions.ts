@@ -389,7 +389,7 @@ export async function AddFolder(parentFolder: string, prospectiveFolder: string,
   const newStructure = (parentFolder)
     ? RecurseFilesFindTargetFolder(files, parentFolder, prospectiveFolder)
     : {
-        ...user.content,
+        ...files,
         [prospectiveFolder]: {}
       };
   isAdded = false;
