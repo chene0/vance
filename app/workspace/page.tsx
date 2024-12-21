@@ -9,6 +9,7 @@ import type { Metadata } from "next";
 import GlobalNavbar from "../global-components/GlobalNavbar";
 import fs from 'fs';
 import path from 'path';
+import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
     title: "Your workspace",
@@ -18,6 +19,12 @@ export const metadata: Metadata = {
 export default async function Page() {
     const session = await auth()
     const user = await getUserById(session?.user.id as string)
+
+    // Redirects the user to the signin page if
+    // they attempt to access this "workspace" page without being signed in
+    if (Object.keys(user).length === 0) {
+        redirect("./api/auth/signin");
+    }
 
     // const tesseractTouch = fs.readFileSync(path.join(process.cwd(), 'node_modules/tesseract.js/src/worker-script/node/index.js'));
     // const tesseractTouchTwo = fs.readFileSync(path.join(process.cwd(), 'public/tesseract-core-simd.wasm'));
