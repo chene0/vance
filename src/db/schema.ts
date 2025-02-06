@@ -121,6 +121,7 @@ export const questions = pgTable(
     bottomBound: integer('bottomBound').notNull(),
     priorityRating: integer('priorityRating').notNull(),
     hasAnswer: boolean('hasAnswer').notNull(),
+    notes: text('notes')
   }
 )
 

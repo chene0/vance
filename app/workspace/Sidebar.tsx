@@ -5,7 +5,7 @@ import { Sidebar, Modal, Button } from "flowbite-react";
 import { HiArrowSmRight, HiChartPie, HiInbox, HiShoppingBag, HiTable, HiUser } from "react-icons/hi";
 import { GetFileFromBucket } from "../lib/actions";
 import * as ContextMenu from '@radix-ui/react-context-menu';
-import React, { useState } from 'react'
+import React, { useState, useRef } from 'react'
 import { use } from "react";
 
 import { useAppSelector, useAppDispatch } from '../hooks'

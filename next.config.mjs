@@ -14,17 +14,20 @@ const nextConfig = {
         bodySizeLimit: '10mb',
     },
     },
-    webpack(config, { isServer, dev }) {
-      config.experiments = {
-        asyncWebAssembly: true,
-        layers: true
-      };
-  
-      if (!dev && isServer) {
-        config.output.webassemblyModuleFilename = 'chunks/[id].wasm';
-        config.plugins.push(new WasmChunksFixPlugin());
+    webpack: (config, { isServer, dev }) => {
+      // Only perform the following steps for the client-side bundle
+      if (!isServer) {
+        // Copy the WebAssembly files from node_modules to the output directory
+        const patterns = [
+          {
+            from: 'public/wasm/*.wasm',
+            to: path.join('node_modules/tesseract.js-core'),
+          },
+        ];
+
+        config.plugins.push(new CopyWebpackPlugin({ patterns }));
       }
-  
+
       return config;
     }
   };
